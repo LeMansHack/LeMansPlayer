@@ -1,5 +1,6 @@
 var midi = require('midi');
 var data = require('./dataexplorer.js');
+var myArgs = process.argv.slice(2);
 
 var play = function() {
     this.currentData = null;
@@ -17,35 +18,15 @@ var play = function() {
     this.output.openVirtualPort("Test Output");
     this.input = new midi.input();
     this.input.openVirtualPort("Test input");
+
+    this.firstTime = true;
+    this.sendMidi = true;
 };
 
 play.prototype.run = function() {
     var me = this;
-    var firstTime = true;
-
     setInterval(function() {
-        me.currentData = me.dataExplorer.getData(me.currentSec);
-        var currentLab =  me.getCurrentLab();
-        var currentSpeed = me.getCurrentSpeed();
-
-        if(me.currentSpeed !== currentSpeed) {
-            console.log('Setting current speed to:' + currentSpeed);
-            me.currentSpeed = currentSpeed;
-            me.sendMidiNote(1, me.currentSpeed, 177);
-        }
-
-        if(me.currentLab !== currentLab) {
-            me.currentLab = currentLab;
-            console.log('Current lap:' + me.currentLab);
-            me.currentMusicLab += 1;
-            console.log('Shifting music lap to: ' + me.currentMusicLab);
-            if(firstTime) {
-                me.sendMidiNote(me.currentMusicLab);
-                firstTime = false;
-            }
-        }
-
-        me.currentSec += 1;
+        me.render();
     }, 1);
 
     var lastSendTrack = 1;
@@ -57,7 +38,46 @@ play.prototype.run = function() {
     });
 };
 
+play.prototype.render = function() {
+    this.currentData = this.dataExplorer.getData(this.currentSec);
+    var currentLab =  this.getCurrentLab();
+    var currentSpeed = this.getCurrentSpeed();
+
+    if(this.currentSpeed !== currentSpeed || this.firstTime) {
+        console.log('Setting current speed to:' + currentSpeed);
+        this.currentSpeed = currentSpeed;
+        this.sendMidiNote(1, this.currentSpeed, 177);
+    }
+
+    if(this.currentLab !== currentLab || this.firstTime) {
+        this.currentLab = currentLab;
+        console.log('Current lap:' + this.currentLab);
+        this.currentMusicLab += 1;
+        console.log('Shifting music lap to: ' + this.currentMusicLab);
+        if(this.firstTime) {
+            this.sendMidiNote(this.currentMusicLab);
+            this.firstTime = false;
+        }
+    }
+
+    this.currentSec += 1;
+};
+
+play.prototype.spool = function(musiclap) {
+      this.sendMidi = false;
+      while(this.currentMusicLab < musiclap) {
+          this.render();
+      }
+
+      this.firstTime = true;
+      this.sendMidi = true;
+};
+
 play.prototype.sendMidiNote = function(note, value, channel) {
+    if(!this.sendMidi) {
+        return;
+    }
+
     if(!value) {
         value = 127;
     }
@@ -92,6 +112,17 @@ play.prototype.getCurrentSpeed = function() {
 };
 
 var play = new play();
-setTimeout(function() {
+if(myArgs[0] && myArgs[0].length > 0) {
+    console.log('Sppoling to lap ' + myArgs[0]);
+    play.spool(myArgs[0]);
+    console.log('Playing lap ' + myArgs[0]);
     play.run();
-}, 10000);
+} else {
+    console.log('Please wait 10 sec for MIDI driver to init...');
+    setTimeout(function() {
+        console.log('Starting MIDI playback...');
+        play.run();
+    }, 10000);
+}
+
+
