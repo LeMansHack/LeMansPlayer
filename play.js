@@ -9,7 +9,7 @@ var play = function() {
 
     this.currentMusicLab = 0;
     this.currentLab = -1;
-    this.currentSpeed = 0;
+    this.currentSpeed = 80;
 
     this.note = 0;
     this.value = 127;
@@ -45,8 +45,8 @@ play.prototype.render = function() {
 
     if(this.currentSpeed !== currentSpeed || this.firstTime) {
         console.log('Setting current speed to:' + currentSpeed);
+        this.turnDaKnop(1, currentSpeed, 177, this.currentSpeed, 100);
         this.currentSpeed = currentSpeed;
-        this.sendMidiNote(1, this.currentSpeed, 177);
     }
 
     if(this.currentLab !== currentLab || this.firstTime) {
@@ -90,6 +90,26 @@ play.prototype.sendMidiNote = function(note, value, channel) {
     console.log('Sending midi value: ' + value);
     console.log('Sending midi channel: ' + channel);
     this.output.sendMessage([channel, note, value]);
+};
+
+play.prototype.turnDaKnop = function(note, value, channel, oldValue, delay) {
+    if(!delay) {
+        delay = 500;
+    }
+
+    var self = this;
+    var interVal = setInterval(function() {
+        if(value != oldValue) {
+            console.log('Turning da knop from ' + oldValue);
+            oldValue = (oldValue < value) ? oldValue + 1 : oldValue - 1;
+            console.log(oldValue);
+            self.sendMidiNote(note, oldValue, channel);
+        } else {
+            console.log('Turning knop finaly value' + oldValue);
+            self.sendMidiNote(note, oldValue, channel);
+            clearInterval(interVal);
+        }
+    }, delay);
 };
 
 play.prototype.getCurrentLab = function() {
