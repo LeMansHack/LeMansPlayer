@@ -10,6 +10,11 @@ var play = function() {
     this.currentMusicLab = 0;
     this.currentLab = -1;
     this.currentSpeed = 80;
+    this.windDirection = 0;
+    this.currentWindDirection = 0;
+
+    this.currentWindSpeed = 0;
+    this.windSpeed = 0;
 
     this.note = 0;
     this.value = 127;
@@ -31,6 +36,18 @@ play.prototype.run = function() {
 
     var lastSendTrack = 1;
     this.input.on('message', function(deltaTime, message) {
+        if(me.currentWindDirection != me.windDirection) {
+            console.log('Changing windirection to ' + me.windDirection);
+            me.windDirection = me.currentWindDirection;
+            me.sendMidiNote(2, me.windDirectionToMidi(me.windDirection), 177);
+        }
+
+        if(me.currentWindSpeed != me.windSpeed) {
+            console.log('Changing windspeed to ' + me.windSpeed);
+            me.windSpeed = me.currentWindSpeed;
+            me.sendMidiNote(3, me.windSpeedToMidi(me.windSpeed), 177);
+        }
+
         if(lastSendTrack != me.currentMusicLab) {
             lastSendTrack = me.currentMusicLab;
             me.sendMidiNote(me.currentMusicLab);
@@ -42,6 +59,18 @@ play.prototype.render = function() {
     this.currentData = this.dataExplorer.getData(this.currentSec);
     var currentLab =  this.getCurrentLab();
     var currentSpeed = this.getCurrentSpeed();
+
+    this.currentWindDirection = this.currentData.track.weather.windDirection;
+    if(this.firstTime) {
+        this.windDirection = this.currentWindDirection;
+        this.sendMidiNote(2, this.windDirectionToMidi(this.windDirection), 177);
+    }
+
+    this.currentWindSpeed = this.currentData.track.weather.windSpeed;
+    if(this.firstTime) {
+        this.windSpeed = this.currentData.track.weather.windSpeed;
+        this.sendMidiNote(3, this.windSpeedToMidi(this.windSpeed), 177);
+    }
 
     if(this.currentSpeed !== currentSpeed || this.firstTime) {
         console.log('Setting current speed to:' + currentSpeed);
@@ -56,11 +85,13 @@ play.prototype.render = function() {
         console.log('Shifting music lap to: ' + this.currentMusicLab);
         if(this.firstTime) {
             this.sendMidiNote(this.currentMusicLab);
-            this.firstTime = false;
         }
     }
 
     this.currentSec += 1;
+    if(this.firstTime) {
+        this.firstTime = false;
+    }
 };
 
 play.prototype.spool = function(musiclap) {
@@ -105,7 +136,7 @@ play.prototype.turnDaKnop = function(note, value, channel, oldValue, delay) {
             console.log(oldValue);
             self.sendMidiNote(note, oldValue, channel);
         } else {
-            console.log('Turning knop finaly value' + oldValue);
+            console.log('Turning knop finaly to value ' + oldValue);
             self.sendMidiNote(note, oldValue, channel);
             clearInterval(interVal);
         }
@@ -128,6 +159,16 @@ play.prototype.getCurrentSpeed = function() {
     var cars = this.currentData.cars;
     
     var percent =  (cars[0].lastTimeInMiliseconds)/270000;
+    return Math.round(127*percent);
+};
+
+play.prototype.windDirectionToMidi = function(windirection) {
+    var percent = windirection/360;
+    return Math.round(127*percent);
+};
+
+play.prototype.windSpeedToMidi = function(windspeed) {
+    var percent = windspeed/20;
     return Math.round(127*percent);
 };
 
