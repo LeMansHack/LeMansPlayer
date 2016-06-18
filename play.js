@@ -356,7 +356,7 @@ play.prototype.readCars = function() {
 play.prototype.getCurrentSpeed = function() {
     var cars = this.currentData.cars;
     
-    var percent =  (cars[0].lastTimeInMiliseconds)/460000;
+    var percent =  (cars[0].lastTimeInMiliseconds)/1990000;
     return Math.round(127*percent);
 };
 
