@@ -47,10 +47,30 @@ var play = function() {
         takesTheLead: [11, 177]
     };
 
+    this.tracksToStartFrom = [
+        2,
+        12,
+        17,
+        22,
+        28,
+        32,
+        38,
+        44,
+        52,
+        57,
+        62,
+        68,
+        72,
+        78,
+        83,
+        88
+    ];
+
     this.currentSec = 0;
     this.firstTime = true;
     this.sendMidi = true;
     this.maxTracks = 92;
+    this.maxTracksOverflow = true;
 
     this.changingPitStatus = false;
     this.changingOldPitOutStatus = false;
@@ -104,8 +124,15 @@ play.prototype.run = function() {
         }
 
         if(lastSendTrack != me.playData.musicLab) {
-            if(me.playData.musicLab > me.maxTracks) {
-                me.playData.musicLab = Math.random() * me.maxTracks;
+            if(me.maxTracksOverflow) {
+                for(var i in me.tracksToStartFrom) {
+                    if((me.tracksToStartFrom[i] - 1) == lastSendTrack) {
+                        me.playData.musicLab = me.tracksToStartFrom[Math.floor(Math.random() * me.tracksToStartFrom.length)];
+                    }
+                }
+            } else if(me.playData.musicLab > me.maxTracks) {
+                me.maxTracksOverflow = true;
+                me.playData.musicLab = me.tracksToStartFrom[Math.floor(Math.random() * me.tracksToStartFrom.length)]
             }
 
             lastSendTrack = me.playData.musicLab;
