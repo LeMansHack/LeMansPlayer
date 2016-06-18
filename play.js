@@ -109,6 +109,8 @@ play.prototype.run = function() {
 
     var lastSendTrack = 1;
     this.input.on('message', function(deltaTime, message) {
+        console.log('FREDERIK I´VE RECIVE MIDI!!!');
+
         if(me.playData.windDirection[0] != me.playData.windDirection[1]) {
             console.log('Changing windirection to ' + me.playData.windDirection[0]);
             me.playData.windDirection[2] = me.playData.windDirection[1];
@@ -138,6 +140,7 @@ play.prototype.run = function() {
             }
 
             lastSendTrack = me.playData.musicLab;
+            console.log('Sending midi node to track!!! FREDERIK PLASE LOOK HEERE!!! <---');
             me.sendMidiNote(me.playData.musicLab);
         }
     });
