@@ -57,7 +57,7 @@ var play = function() {
     this.changingNumberOfDrivers = false;
     this.changingNumberOfWetDrivers = false;
 
-    this.live = false;
+    this.live = true;
     this.spooling = false;
 
     this.saveFile = './playdata.json';
@@ -386,7 +386,7 @@ play.prototype.readCars = function() {
 play.prototype.getCurrentSpeed = function() {
     var cars = this.currentData.cars;
     
-    var percent =  (cars[0].lastTimeInMiliseconds)/1990000;
+    var percent =  100000/(cars[0].lastTimeInMiliseconds);
     return Math.round(127*percent);
 };
 
