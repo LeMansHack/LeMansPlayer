@@ -74,7 +74,7 @@ var play = function() {
     this.currentSec = 0;
     this.firstTime = true;
     this.sendMidi = true;
-    this.maxTracks = 95;
+    this.maxTracks = 96;
     this.maxTracksOverflow = true;
 
     this.changingPitStatus = false;
