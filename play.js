@@ -30,7 +30,9 @@ var play = function() {
         numberOfWetTires: [0,0,0],
         running: [0,0,0],
         safetyCar: [false, false, false],
-        flag: [0,0,0]
+        flag: [0,0,0],
+        pitDriver: [0,0],
+        driverChange: [0,0]
     };
 
     this.midiNoteMapping = {
@@ -44,7 +46,9 @@ var play = function() {
         changingNumberOfWetDrivers: [8, 177],
         safetyCar: [9, 177],
         yellowFlag: [10, 177],
-        takesTheLead: [11, 177]
+        takesTheLead: [11, 177],
+        inPit: [12, 177],
+        changingDriver: [13, 177]
     };
 
     this.tracksToStartFrom = [
@@ -89,7 +93,10 @@ play.prototype.run = function() {
     var me = this;
     if(fs.existsSync(this.saveFile)) {
         console.log('Playing from ' + this.saveFile);
-        this.playData = JSON.parse(fs.readFileSync(this.saveFile));
+        var fileData = JSON.parse(fs.readFileSync(this.saveFile));
+        for(var fi in fileData) {
+            this.playData[fi] = fileData[fi];
+        }
     }
 
     if(this.live == true) {
@@ -235,39 +242,23 @@ play.prototype.render = function() {
         }
     }
 
+    if(me.playData.pitDriver[0] > 0 && me.playData.pitDriver[0] != me.playData.pitDriver[1]) {
+        me.playData.pitDriver[1] = me.playData.pitDriver[0];
+        me.playCarNumber(me.playData.pitDriver[1]);
+        this.sendMidiNote(this.midiNoteMapping.inPit[0], 127, this.midiNoteMapping.inPit[1], 1500);
+    }
+
+    if(me.playData.driverChange[0] > 0 && me.playData.driverChange[0] != me.playData.driverChange[1]) {
+        me.playData.driverChange[1] = me.playData.driverChange[0];
+        me.playCarNumber(me.playData.driverChange[0]);
+        this.sendMidiNote(this.midiNoteMapping.changingDriver[0], 127, this.midiNoteMapping.changingDriver[1], 1500);
+    }
+
     this.playData.frontCar[0] = this.currentData.cars[0].number;
     if(this.playData.frontCar[0] != this.playData.frontCar[1]) {
         this.playData.frontCar[1] = this.playData.frontCar[0];
         console.log('New car has overtaken!');
-        switch(this.playData.frontCar[0]) {
-            case "1":
-                this.sendMidiNote(1, 127, 178);
-                break;
-            case "2":
-                this.sendMidiNote(2, 127, 178);
-                break;
-            case "4":
-                this.sendMidiNote(4, 127, 178);
-                break;
-            case "5":
-                this.sendMidiNote(5, 127, 178);
-                break;
-            case "6":
-                this.sendMidiNote(6, 127, 178);
-                break;
-            case "7":
-                this.sendMidiNote(7, 127, 178);
-                break;
-            case "8":
-                this.sendMidiNote(8, 127, 178);
-                break;
-            case "12":
-                this.sendMidiNote(12, 127, 178);
-                break;
-            case "13":
-                this.sendMidiNote(13, 127, 178);
-                break;
-        }
+        this.playCarNumber(this.playData.frontCar[0]);
 
         setTimeout(function() {
             me.sendMidiNote(me.midiNoteMapping.takesTheLead[0], 127, me.midiNoteMapping.takesTheLead[1]);
@@ -318,6 +309,42 @@ play.prototype.render = function() {
     }
 };
 
+play.prototype.playCarNumber = function(carnumber) {
+    console.log('Sound carnumber ' + carnumber );
+    var me = this;
+    setTimeout(function() {
+        switch(carnumber) {
+            case "1":
+                me.sendMidiNote(1, 127, 178);
+                break;
+            case "2":
+                me.sendMidiNote(2, 127, 178);
+                break;
+            case "4":
+                me.sendMidiNote(4, 127, 178);
+                break;
+            case "5":
+                me.sendMidiNote(5, 127, 178);
+                break;
+            case "6":
+                me.sendMidiNote(6, 127, 178);
+                break;
+            case "7":
+                me.sendMidiNote(7, 127, 178);
+                break;
+            case "8":
+                me.sendMidiNote(8, 127, 178);
+                break;
+            case "12":
+                me.sendMidiNote(12, 127, 178);
+                break;
+            case "13":
+                me.sendMidiNote(13, 127, 178);
+                break;
+        }
+    }, 500);
+};
+
 play.prototype.spool = function(musiclap) {
       this.sendMidi = false;
       this.spooling = true;
@@ -333,7 +360,7 @@ play.prototype.spool = function(musiclap) {
       fs.writeFileSync(this.saveFile, JSON.stringify(this.playData));
 };
 
-play.prototype.sendMidiNote = function(note, value, channel) {
+play.prototype.sendMidiNote = function(note, value, channel, delay) {
     if(!this.sendMidi) {
         return;
     }
@@ -346,8 +373,17 @@ play.prototype.sendMidiNote = function(note, value, channel) {
         channel = 176;
     }
 
-    console.log('Sending midi node: ' + note + ',' + value + ',' + channel);
-    this.output.sendMessage([channel, note, value]);
+    if(delay) {
+        var me = this;
+        setTimeout(function() {
+            console.log('Sending midi node: ' + note + ',' + value + ',' + channel);
+            me.output.sendMessage([channel, note, value]);
+        }, delay);
+    } else {
+        console.log('Sending midi node: ' + note + ',' + value + ',' + channel);
+        this.output.sendMessage([channel, note, value]);
+    }
+
 };
 
 play.prototype.turnDaKnop = function(note, value, channel, oldValue, delay, callback) {
@@ -399,6 +435,9 @@ play.prototype.readCars = function() {
     for(var i in cars) {
         accLabs += cars[i].laps;
         if(cars[i].driverStatus == 4) {
+            if(parseInt(cars[i].number) <= 13) {
+                this.playData.pitDriver[0] = cars[i].number;
+            }
             pits += 1;
         }
 
@@ -420,7 +459,9 @@ play.prototype.readCars = function() {
             }
 
             if(cars[i].driver !== this.oldCarData[i].driver) {
-                numberOfDriverChanges += 1;
+                if(parseInt(cars[i].number) <= 13) {
+                    this.playData.driverChange[0] = cars[i].number;
+                }
             }
         }
 
