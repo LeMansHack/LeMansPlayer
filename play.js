@@ -235,60 +235,75 @@ play.prototype.render = function() {
     }
 
     this.playData.frontCar[0] = this.currentData.cars[0].number;
-    if(this.playData.frontCar[1] != this.playData.frontCar[1]) {
+    if(this.playData.frontCar[0] != this.playData.frontCar[1]) {
+        this.playData.frontCar[1] = this.playData.frontCar[0];
         console.log('New car has overtaken!');
-        switch(this.currentData.cars[0].number) {
+        switch(this.playData.frontCar[0]) {
             case "1":
-                this.sendMidi(1, 127, 178);
+                this.sendMidiNote(1, 127, 178);
                 break;
             case "2":
-                this.sendMidi(2, 127, 178);
+                this.sendMidiNote(2, 127, 178);
                 break;
             case "4":
-                this.sendMidi(4, 127, 178);
+                this.sendMidiNote(4, 127, 178);
                 break;
             case "5":
-                this.sendMidi(5, 127, 178);
+                this.sendMidiNote(5, 127, 178);
                 break;
             case "6":
-                this.sendMidi(6, 127, 178);
+                this.sendMidiNote(6, 127, 178);
                 break;
             case "7":
-                this.sendMidi(7, 127, 178);
+                this.sendMidiNote(7, 127, 178);
                 break;
             case "8":
-                this.sendMidi(8, 127, 178);
+                this.sendMidiNote(8, 127, 178);
                 break;
             case "12":
-                this.sendMidi(12, 127, 178);
+                this.sendMidiNote(12, 127, 178);
                 break;
             case "13":
-                this.sendMidi(13, 127, 178);
+                this.sendMidiNote(13, 127, 178);
                 break;
         }
 
-        this.sendMidiNote(this.midiNoteMapping.takesTheLead[0], 127, this.midiNoteMapping.takesTheLead[1]);
+        setTimeout(function() {
+            me.sendMidiNote(me.midiNoteMapping.takesTheLead[0], 127, me.midiNoteMapping.takesTheLead[1]);
+        }, 1000);
+    }
+
+    this.playData.safetyCar[0] = this.currentData.track.safetyCar;
+    if(this.playData.safetyCar[0] !== this.playData.safetyCar[1]) {
+        this.playData.safetyCar[1] = this.playData.safetyCar[0];
+        if(this.playData.safetyCar[0] == true) {
+            this.sendMidiNote(this.midiNoteMapping.safetyCar[0], 127, this.midiNoteMapping.safetyCar[1]);
+        }
     }
 
     this.playData.flag[0] = this.currentData.track.flag;
     if(this.playData.flag[0] !== this.playData.flag[1] || this.firstTime) {
         this.playData.flag[1] = this.playData.flag[0];
-        switch(this.currentData.track.flag) {
+        switch(this.playData.flag[0]) {
             case 1:
-                console.log('Safety car on track!');
-                this.sendMidiNote(this.midiNoteMapping.safetyCar[0], 127, this.midiNoteMapping.safetyCar[1]);
+                console.log('Track off car on track!');
                 break;
             case 2:
-                this.sendMidiNote(this.midiNoteMapping.yellowFlag[0], 127, this.midiNoteMapping.yellowFlag[1]);
-                break;
-            case 3:
                 console.log('Green flag');
                 break;
-            case 4:
+            case 3:
                 console.log('Red flag');
                 break;
-            case 5:
+            case 4:
                 console.log('Chk flag');
+                break;
+            case 5:
+                console.log('Yellow flag!');
+                this.sendMidiNote(this.midiNoteMapping.yellowFlag[0], 127, this.midiNoteMapping.yellowFlag[1]);
+                break;
+            case 6:
+                console.log('Full Yellow flag!');
+                this.sendMidiNote(this.midiNoteMapping.yellowFlag[0], 127, this.midiNoteMapping.yellowFlag[1]);
                 break;
         }
     }
