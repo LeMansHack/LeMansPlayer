@@ -5,216 +5,201 @@ var myArgs = process.argv.slice(2);
 
 var play = function() {
     this.currentData = null;
-    this.currentSec = 0;
     this.dataExplorer = new data();
     this.oldCarData = [ ];
-
-    this.currentMusicLab = 0;
-    this.currentLab = -1;
-    this.lap = 0;
-
-    this.currentSpeed = 80;
-    this.windDirection = 0;
-    this.currentWindDirection = 0;
-
-    this.currentWindSpeed = 0;
-    this.windSpeed = 0;
-
-    this.note = 0;
-    this.value = 127;
 
     this.output = new midi.output();
     this.output.openVirtualPort("Test Output");
     this.input = new midi.input();
     this.input.openVirtualPort("Test input");
 
+    //[0,0,0] => [liveValue, setValue, oldValue]
+    this.playData = {
+        musicLab: 0,
+        currentSec: 0,
+        currentLab: -1,
+        lap: 0,
+        speed: [80, 80, 0],
+        windDirection: [0,0,0],
+        windSpeed: [0,0,0],
+        frontCar: [0,0,0],
+        pitStatus: [0,0,0],
+        pitOut: [0,0,0],
+        numberOfPlaceChanges: [0,0,0],
+        numberOfDriverChanges: [0,0,0],
+        numberOfWetTires: [0,0,0],
+        running: [0,0,0],
+        safetyCar: [false, false, false],
+        flag: [0,0,0]
+    };
+
     this.firstTime = true;
     this.sendMidi = true;
-    
-    this.frontCar = 0;
-    this.pitStatus = 0;
-    this.oldPitStatus = 0;
+
     this.changingPitStatus = false;
-
-    this.pitOut = 0;
-    this.oldPitOut = 0;
     this.changingOldPitOutStatus = false;
-
-    this.numberOfPlaceChanges = 0;
-    this.oldNumberOfPlaceChanges = 0;
     this.changingNumberOfPlaces = false;
-
-    this.numberOfDriverChanges = 0;
-    this.oldNumberOfDriverChanges = 0;
     this.changingNumberOfDrivers = false;
-
-    this.numberOfWetTires = 0;
-    this.oldNumberOfWetTires = 0;
     this.changingNumberOfWetDrivers = false;
 
-    this.running = 0;
-    this.oldRunning = 0;
-
-    this.safetyCar = false;
+    this.live = false;
+    this.spooling = false;
 };
 
 play.prototype.run = function() {
     var me = this;
-    setInterval(function() {
-        me.currentData = me.dataExplorer.getData(this.currentSec);
-        me.render();
-        me.currentSec += 1;
-    }, 1);
+    if(this.live == true) {
+        var client = new Client();
+        setInterval(function() {
+            client.get('http://localhost:3000', function(data) {
+                me.currentData = data;
+                me.render();
+            });
+        }, 1000);
+    } else {
+        setInterval(function() {
+            me.currentData = me.dataExplorer.getData(me.playData.currentSec);
+            me.render();
+            me.playData.currentSec += 1;
+        }, 1);
+    }
 
     var lastSendTrack = 1;
     this.input.on('message', function(deltaTime, message) {
-        if(me.currentWindDirection != me.windDirection) {
-            console.log('Changing windirection to ' + me.windDirection);
-            me.windDirection = me.currentWindDirection;
-            me.sendMidiNote(2, me.windDirectionToMidi(me.windDirection), 177);
+        if(me.playData.windDirection[0] != me.playData.windDirection[1]) {
+            console.log('Changing windirection to ' + me.playData.windDirection[0]);
+            me.playData.windDirection[2] = me.playData.windDirection[1];
+            me.playData.windDirection[1] = me.playData.windDirection[0];
+            me.sendMidiNote(2, me.windDirectionToMidi(me.playData.windDirection[1]), 177);
         }
 
-        if(me.currentWindSpeed != me.windSpeed) {
-            console.log('Changing windspeed to ' + me.windSpeed);
-            me.windSpeed = me.currentWindSpeed;
-            me.sendMidiNote(3, me.windSpeedToMidi(me.windSpeed), 177);
+        if(me.playData.windSpeed[0] != me.playData.windSpeed[1]) {
+            console.log('Changing windspeed to ' + me.playData.windSpeed[0]);
+            me.playData.windSpeed[2] = me.playData.windSpeed[1];
+            me.playData.windSpeed[1] = me.playData.windSpeed[0];
+            me.sendMidiNote(3, me.windSpeedToMidi(me.playData.windSpeed[1]), 177);
         }
 
-        if(lastSendTrack != me.currentMusicLab) {
-            lastSendTrack = me.currentMusicLab;
-            me.sendMidiNote(me.currentMusicLab);
-        }
-    });
-};
-
-play.prototype.runLive = function() {
-    var me = this;
-    var client = new Client();
-    setInterval(function() {
-        client.get('http://localhost:3000', function(data) {
-           me.currentData = data;
-           me.render();
-        });
-    }, 1000);
-
-    var lastSendTrack = 1;
-    this.input.on('message', function(deltaTime, message) {
-        if(me.currentWindDirection != me.windDirection) {
-            console.log('Changing windirection to ' + me.windDirection);
-            me.windDirection = me.currentWindDirection;
-            me.sendMidiNote(2, me.windDirectionToMidi(me.windDirection), 177);
-        }
-
-        if(me.currentWindSpeed != me.windSpeed) {
-            console.log('Changing windspeed to ' + me.windSpeed);
-            me.windSpeed = me.currentWindSpeed;
-            me.sendMidiNote(3, me.windSpeedToMidi(me.windSpeed), 177);
-        }
-
-        if(lastSendTrack != me.currentMusicLab) {
-            lastSendTrack = me.currentMusicLab;
-            me.sendMidiNote(me.currentMusicLab);
+        if(lastSendTrack != me.playData.currentMusicLab) {
+            lastSendTrack = me.playData.currentMusicLab;
+            me.sendMidiNote(me.playData.currentMusicLab);
         }
     });
 };
 
 play.prototype.render = function() {
     this.readCars();
-    var currentSpeed = this.getCurrentSpeed();
-    this.safetyCar = this.currentData.track.safetyCar;
+    this.playData.speed[0] = this.getCurrentSpeed();
+    this.playData.safetyCar[0] = this.currentData.track.safetyCar;
 
-    this.currentWindDirection = this.currentData.track.weather.windDirection;
+    this.playData.windDirection[0] = this.currentData.track.weather.windDirection;
     if(this.firstTime) {
-        this.windDirection = this.currentWindDirection;
-        this.sendMidiNote(2, this.windDirectionToMidi(this.windDirection), 177);
+        this.playData.windDirection[2] = this.playData.windDirection[1];
+        this.playData.windDirection[1] = this.playData.windDirection[0];
+        this.sendMidiNote(2, this.windDirectionToMidi(this.playData.windDirection[1]), 177);
     }
 
-    this.currentWindSpeed = this.currentData.track.weather.windSpeed;
+    this.playData.windSpeed[0] = this.currentData.track.weather.windSpeed;
     if(this.firstTime) {
-        this.windSpeed = this.currentData.track.weather.windSpeed;
-        this.sendMidiNote(3, this.windSpeedToMidi(this.windSpeed), 177);
+        this.playData.windSpeed[2] = this.playData.windSpeed[1];
+        this.playData.windSpeed[1] = this.playData.windSpeed[0];
+        this.sendMidiNote(3, this.windSpeedToMidi(this.playData.windSpeed[1]), 177);
     }
 
-    if(this.currentSpeed !== currentSpeed || this.firstTime) {
-        console.log('Setting current speed to:' + currentSpeed);
-        this.turnDaKnop(1, currentSpeed, 177, this.currentSpeed, 100);
-        this.currentSpeed = currentSpeed;
+    if(this.playData.speed[0] !== this.playData.speed[1] || this.firstTime) {
+        console.log('Setting current speed to:' + this.playData.speed[0]);
+        this.playData.speed[2] = this.playData.speed[1];
+        this.playData.speed[1] = this.playData.speed[0];
+        this.turnDaKnop(1, this.playData.speed[1], 177, this.playData.speed[2], 100);
     }
 
     var me = this;
-
-    if(!this.changingPitStatus) {
+    //Pit status
+    if(!this.changingPitStatus && this.playData.pitStatus[0] !== this.playData.pitStatus[1]) {
+        console.log('Changing pit status to ' + this.playData.pitStatus[0]);
         this.changingPitStatus = true;
-        this.turnDaKnop(4, this.pitStatus, 177, this.oldPitStatus, 800, function(number) {
+        this.turnDaKnop(4, this.playData.pitStatus[0], 177, this.playData.pitStatus[1], 800, function(number) {
             me.changingPitStatus = false;
-            me.oldPitStatus = number;
+            me.playData.pitStatus[1] = number;
         });
     }
 
-    if(!this.changingOldPitOutStatus) {
+    //Pit out status
+    if(!this.changingOldPitOutStatus && this.playData.pitOut[0] !== this.playData.pitOut[1]) {
+        console.log('Changing pit out status to ' + this.playData.pitOut[1]);
         this.changingOldPitOutStatus = true;
-        this.turnDaKnop(5, this.pitOut, 177, this.oldPitOut, 800, function(number) {
+        this.turnDaKnop(5, this.playData.pitOut[0], 177, this.playData.pitOut[1], 800, function(number) {
             me.changingOldPitOutStatus = false;
-            me.oldPitOut = number;
+            me.playData.pitOut[1] = number;
         });
     }
 
-    if(!this.changingNumberOfPlaces && this.oldNumberOfPlaceChanges != this.numberOfPlaceChanges) {
-        console.log('Changing number of placechanges');
+    //Place status
+    if(!this.changingNumberOfPlaces && this.playData.numberOfPlaceChanges[0] !== this.playData.numberOfPlaceChanges[1]) {
+        console.log('Changing number of place changes to ' + this.playData.numberOfPlaceChanges[0]);
         this.changingNumberOfPlaces = true;
-        this.turnDaKnop(6, this.numberOfPlaceChanges, 177, this.oldNumberOfPlaceChanges, 800, function(numberSetTo) {
+        this.turnDaKnop(6, this.playData.numberOfPlaceChanges[0], 177, this.playData.numberOfPlaceChanges[1], 800, function(numberSetTo) {
             console.log('Finished changing number of drivers');
             me.changingNumberOfPlaces = false;
-            me.oldNumberOfPlaceChanges = numberSetTo;
+            me.playData.numberOfPlaceChanges[1] = numberSetTo;
         });
     }
 
-    if(!this.changingNumberOfDrivers) {
+    //Number of driver change
+    if(!this.changingNumberOfDrivers && this.playData.numberOfDriverChanges[0] != this.playData.numberOfDriverChanges[1]) {
+        console.log('Changing number of driver changes to ' + this.playData.numberOfDriverChanges[0]);
         this.changingNumberOfDrivers = true;
-        this.turnDaKnop(7, this.numberOfDriverChanges, 177, this.oldNumberOfDriverChanges, 800, function(number) {
+        this.turnDaKnop(7, this.playData.numberOfDriverChanges[0], 177, this.playData.numberOfDriverChanges[1], 800, function(number) {
             me.changingNumberOfDrivers = false;
-            me.oldNumberOfDriverChanges = number;
+            me.playData.numberOfDriverChanges[1] = number;
         });
     }
 
-    if(!this.changingNumberOfWetDrivers) {
+    //Number of wet drivers
+    if(!this.changingNumberOfWetDrivers && this.playData.numberOfWetTires[0] !== this.playData.numberOfWetTires[1]) {
+        console.log('Changing number of wet tires drivers to ' + this.playData.numberOfWetTires[0]);
         this.changingNumberOfWetDrivers = true;
-        this.turnDaKnop(8, this.numberOfWetTires, 177, this.oldNumberOfWetTires, 800, function(number) {
+        this.turnDaKnop(8, this.playData.numberOfWetTires[0], 177, this.playData.numberOfWetTires[1], 800, function(number) {
             me.changingNumberOfWetDrivers = false;
-            me.oldNumberOfWetTires = number;
+            me.playData.numberOfWetTires[1] = number;
         });
     }
 
-    if(this.lap !== this.currentLab || this.firstTime) {
-        this.lap = this.currentLab;
-        console.log('Current lap:' + this.currentLab);
-        this.currentMusicLab += 1;
-        console.log('Shifting music lap to: ' + this.currentMusicLab);
+    if(this.playData.lap !== this.playData.currentLab || this.firstTime) {
+        this.playData.lap = this.playData.currentLab;
+        console.log('Current lap:' + this.playData.currentLab);
+        this.playData.musicLab += 1;
+        console.log('Shifting music lap to: ' + this.playData.musicLab);
         if(this.firstTime) {
-            this.sendMidiNote(this.currentMusicLab);
+            this.sendMidiNote(this.playData.musicLab);
         }
     }
-    
-    if(this.frontCar != this.currentData.cars[0].number) { 
+
+    this.playData.frontCar[0] = this.currentData.cars[0].number;
+    if(this.playData.frontCar[1] != this.playData.frontCar[1]) {
         console.log('New car has overtaken!');
     }
 
-    switch(this.currentData.track.flag) {
-        case 1:
-            console.log('Safety car on track!');
-            break;
-        case 2:
-            console.log('Yellow flag');
-            break;
-        case 3:
-            console.log('Green flag');
-            break;
-        case 4:
-            console.log('Red flag');
-            break;
-        case 5:
-            console.log('Chk flag');
-            break;
+    this.playData.flag[0] = this.currentData.track.flag;
+    if(this.playData.flag[0] !== this.playData.flag[1] || this.firstTime) {
+        this.playData.flag[1] = this.playData.flag[0];
+        switch(this.currentData.track.flag) {
+            case 1:
+                console.log('Safety car on track!');
+                break;
+            case 2:
+                console.log('Yellow flag');
+                break;
+            case 3:
+                console.log('Green flag');
+                break;
+            case 4:
+                console.log('Red flag');
+                break;
+            case 5:
+                console.log('Chk flag');
+                break;
+        }
     }
 
     if(this.firstTime) {
@@ -224,12 +209,16 @@ play.prototype.render = function() {
 
 play.prototype.spool = function(musiclap) {
       this.sendMidi = false;
-      while(this.currentMusicLab < musiclap) {
+      this.spooling = true;
+      while(this.playData.musicLab < musiclap) {
+          this.currentData = this.dataExplorer.getData(this.playData.currentSec);
           this.render();
+          this.playData.currentSec += 1;
       }
 
       this.firstTime = true;
       this.sendMidi = true;
+      this.spooling = false;
 };
 
 play.prototype.sendMidiNote = function(note, value, channel) {
@@ -261,11 +250,19 @@ play.prototype.turnDaKnop = function(note, value, channel, oldValue, delay, call
     }
 
     var self = this;
+    if(self.spooling == true) {
+        console.log('Spool to value ' + value);
+        if(callback) {
+            callback(value);
+        }
+        return;
+    }
+
     var interVal = setInterval(function() {
         if(value != oldValue) {
             console.log('Turning da knop from ' + oldValue);
             oldValue = (oldValue < value) ? oldValue + 1 : oldValue - 1;
-            console.log(oldValue);
+            console.log('to ' + oldValue);
             self.sendMidiNote(note, oldValue, channel);
         } else {
             console.log('Turning knop finaly to value ' + oldValue);
@@ -319,13 +316,13 @@ play.prototype.readCars = function() {
 
     }
 
-    this.running = Math.round(127 * (running/numberOfCars)) + 1;
-    this.pitStatus = Math.round(127 * (pits*2/numberOfCars)) + 1;
-    this.pitOut = Math.round(127 * (pitOut*2/numberOfCars)) + 1;
-    this.numberOfPlaceChanges = Math.round(127 * (numberOfCarChanges*10/numberOfCars)) + 1;
-    this.numberOfDriverChanges = Math.round(127 * (numberOfDriverChanges*10/numberOfCars)) + 1;
-    this.numberOfWetTires = Math.round(127 * (numberOfWetTires*3/numberOfCars)) + 1;
-    this.currentLab = Math.abs(accLabs/numberOfCars).toFixed(1);
+    this.playData.running[0] = Math.round(127 * (running/numberOfCars)) + 1;
+    this.playData.pitStatus[0] = Math.round(127 * (pits*2/numberOfCars)) + 1;
+    this.playData.pitOut[0] = Math.round(127 * (pitOut*2/numberOfCars)) + 1;
+    this.playData.numberOfPlaceChanges[0] = Math.round(127 * (numberOfCarChanges*10/numberOfCars)) + 1;
+    this.playData.numberOfDriverChanges[0] = Math.round(127 * (numberOfDriverChanges*10/numberOfCars)) + 1;
+    this.playData.numberOfWetTires[0] = Math.round(127 * (numberOfWetTires*3/numberOfCars)) + 1;
+    this.playData.currentLab = Math.abs(accLabs/numberOfCars).toFixed(1);
     this.oldCarData = cars;
 };
 
