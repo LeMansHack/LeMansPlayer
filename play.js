@@ -130,7 +130,9 @@ play.prototype.run = function() {
                         me.playData.musicLab = me.tracksToStartFrom[Math.floor(Math.random() * me.tracksToStartFrom.length)];
                     }
                 }
-            } else if(me.playData.musicLab > me.maxTracks) {
+            }
+
+            if(me.playData.musicLab > me.maxTracks) {
                 me.maxTracksOverflow = true;
                 me.playData.musicLab = me.tracksToStartFrom[Math.floor(Math.random() * me.tracksToStartFrom.length)]
             }
