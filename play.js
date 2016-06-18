@@ -43,7 +43,8 @@ var play = function() {
         changingNumberOfDrivers: [7, 177],
         changingNumberOfWetDrivers: [8, 177],
         safetyCar: [9, 177],
-        yellowFlag: [10, 177]
+        yellowFlag: [10, 177],
+        takesTheLead: [11, 177]
     };
 
     this.currentSec = 0;
@@ -56,7 +57,7 @@ var play = function() {
     this.changingNumberOfDrivers = false;
     this.changingNumberOfWetDrivers = false;
 
-    this.live = true;
+    this.live = false;
     this.spooling = false;
 
     this.saveFile = './playdata.json';
@@ -199,6 +200,37 @@ play.prototype.render = function() {
     this.playData.frontCar[0] = this.currentData.cars[0].number;
     if(this.playData.frontCar[1] != this.playData.frontCar[1]) {
         console.log('New car has overtaken!');
+        switch(this.currentData.cars[0].number) {
+            case "1":
+                this.sendMidi(1, 127, 178);
+                break;
+            case "2":
+                this.sendMidi(2, 127, 178);
+                break;
+            case "4":
+                this.sendMidi(4, 127, 178);
+                break;
+            case "5":
+                this.sendMidi(5, 127, 178);
+                break;
+            case "6":
+                this.sendMidi(6, 127, 178);
+                break;
+            case "7":
+                this.sendMidi(7, 127, 178);
+                break;
+            case "8":
+                this.sendMidi(8, 127, 178);
+                break;
+            case "12":
+                this.sendMidi(12, 127, 178);
+                break;
+            case "13":
+                this.sendMidi(13, 127, 178);
+                break;
+        }
+
+        this.sendMidiNote(this.midiNoteMapping.takesTheLead[0], 127, this.midiNoteMapping.takesTheLead[1]);
     }
 
     this.playData.flag[0] = this.currentData.track.flag;
@@ -261,9 +293,7 @@ play.prototype.sendMidiNote = function(note, value, channel) {
         channel = 176;
     }
 
-    console.log('Sending midi node: ' + note);
-    console.log('Sending midi value: ' + value);
-    console.log('Sending midi channel: ' + channel);
+    console.log('Sending midi node: ' + note + ',' + value + ',' + channel);
     this.output.sendMessage([channel, note, value]);
 };
 
