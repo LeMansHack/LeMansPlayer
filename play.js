@@ -50,6 +50,7 @@ var play = function() {
     this.currentSec = 0;
     this.firstTime = true;
     this.sendMidi = true;
+    this.maxTracks = 92;
 
     this.changingPitStatus = false;
     this.changingOldPitOutStatus = false;
@@ -103,6 +104,10 @@ play.prototype.run = function() {
         }
 
         if(lastSendTrack != me.playData.musicLab) {
+            if(me.playData.musicLab > me.maxTracks) {
+                me.playData.musicLab = Math.random() * me.maxTracks;
+            }
+
             lastSendTrack = me.playData.musicLab;
             me.sendMidiNote(me.playData.musicLab);
         }
