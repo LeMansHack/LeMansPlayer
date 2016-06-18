@@ -56,7 +56,7 @@ var play = function() {
     this.changingNumberOfDrivers = false;
     this.changingNumberOfWetDrivers = false;
 
-    this.live = false;
+    this.live = true;
     this.spooling = false;
 
     this.saveFile = './playdata.json';
@@ -72,7 +72,7 @@ play.prototype.run = function() {
     if(this.live == true) {
         var client = new Client();
         setInterval(function() {
-            client.get('http://localhost:3000', function(data) {
+            client.get('http://192.168.1.56:3000', function(data) {
                 me.currentData = data;
                 me.render();
             });
