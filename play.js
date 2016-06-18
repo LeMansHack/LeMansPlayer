@@ -63,13 +63,14 @@ var play = function() {
         72,
         78,
         83,
-        88
+        88,
+        93
     ];
 
     this.currentSec = 0;
     this.firstTime = true;
     this.sendMidi = true;
-    this.maxTracks = 92;
+    this.maxTracks = 95;
     this.maxTracksOverflow = true;
 
     this.changingPitStatus = false;
