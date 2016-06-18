@@ -2,6 +2,7 @@ var midi = require('midi');
 var data = require('./dataexplorer.js');
 var Client = require('node-rest-client').Client;
 var myArgs = process.argv.slice(2);
+var fs = require('graceful-fs');
 
 var play = function() {
     this.currentData = null;
@@ -16,7 +17,6 @@ var play = function() {
     //[0,0,0] => [liveValue, setValue, oldValue]
     this.playData = {
         musicLab: 0,
-        currentSec: 0,
         currentLab: -1,
         lap: 0,
         speed: [80, 80, 0],
@@ -33,6 +33,7 @@ var play = function() {
         flag: [0,0,0]
     };
 
+    this.currentSec = 0;
     this.firstTime = true;
     this.sendMidi = true;
 
@@ -44,10 +45,17 @@ var play = function() {
 
     this.live = false;
     this.spooling = false;
+
+    this.saveFile = './playdata.json';
 };
 
 play.prototype.run = function() {
     var me = this;
+    if(fs.existsSync(this.saveFile)) {
+        console.log('Playing from ' + this.saveFile);
+        this.playData = JSON.parse(fs.readFileSync(this.saveFile));
+    }
+
     if(this.live == true) {
         var client = new Client();
         setInterval(function() {
@@ -58,9 +66,9 @@ play.prototype.run = function() {
         }, 1000);
     } else {
         setInterval(function() {
-            me.currentData = me.dataExplorer.getData(me.playData.currentSec);
+            me.currentData = me.dataExplorer.getData(me.currentSec);
             me.render();
-            me.playData.currentSec += 1;
+            me.currentSec += 1;
         }, 1);
     }
 
@@ -80,9 +88,9 @@ play.prototype.run = function() {
             me.sendMidiNote(3, me.windSpeedToMidi(me.playData.windSpeed[1]), 177);
         }
 
-        if(lastSendTrack != me.playData.currentMusicLab) {
-            lastSendTrack = me.playData.currentMusicLab;
-            me.sendMidiNote(me.playData.currentMusicLab);
+        if(lastSendTrack != me.playData.musicLab) {
+            lastSendTrack = me.playData.musicLab;
+            me.sendMidiNote(me.playData.musicLab);
         }
     });
 };
@@ -205,6 +213,10 @@ play.prototype.render = function() {
     if(this.firstTime) {
         this.firstTime = false;
     }
+
+    if(!this.spooling) {
+        fs.writeFileSync(this.saveFile, JSON.stringify(this.playData));
+    }
 };
 
 play.prototype.spool = function(musiclap) {
@@ -219,6 +231,7 @@ play.prototype.spool = function(musiclap) {
       this.firstTime = true;
       this.sendMidi = true;
       this.spooling = false;
+      fs.writeFileSync(this.saveFile, JSON.stringify(this.playData));
 };
 
 play.prototype.sendMidiNote = function(note, value, channel) {
@@ -329,7 +342,7 @@ play.prototype.readCars = function() {
 play.prototype.getCurrentSpeed = function() {
     var cars = this.currentData.cars;
     
-    var percent =  (cars[0].lastTimeInMiliseconds)/270000;
+    var percent =  (cars[0].lastTimeInMiliseconds)/460000;
     return Math.round(127*percent);
 };
 
