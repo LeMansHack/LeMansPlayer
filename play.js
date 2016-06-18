@@ -48,7 +48,8 @@ var play = function() {
         yellowFlag: [10, 177],
         takesTheLead: [11, 177],
         inPit: [12, 177],
-        changingDriver: [13, 177]
+        changingDriver: [13, 177],
+        greenFlag: [14, 177]
     };
 
     this.tracksToStartFrom = [
@@ -282,6 +283,7 @@ play.prototype.render = function() {
                 break;
             case 2:
                 console.log('Green flag');
+                this.sendMidiNote(this.midiNoteMapping.greenFlag[0], 127, this.midiNoteMapping.greenFlag[1]);
                 break;
             case 3:
                 console.log('Red flag');
