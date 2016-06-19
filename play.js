@@ -92,7 +92,7 @@ var play = function() {
     this.mainInterval = null;
 
     this.endingMusicLab = 98;
-    this.stopMusicLab = 105;
+    this.stopMusicLab = 106;
 
     this.saveFile = './playdata.json';
 };
