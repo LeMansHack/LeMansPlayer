@@ -32,7 +32,8 @@ var play = function() {
         safetyCar: [false, false, false],
         flag: [0,0,0],
         pitDriver: [0,0],
-        driverChange: [0,0]
+        driverChange: [0,0],
+        lastTrack: false
     };
 
     this.midiNoteMapping = {
@@ -88,6 +89,10 @@ var play = function() {
 
     this.live = true;
     this.spooling = false;
+    this.mainInterval = null;
+
+    this.endingMusicLab = 98;
+    this.stopMusicLab = 105;
 
     this.saveFile = './playdata.json';
 };
@@ -104,14 +109,14 @@ play.prototype.run = function() {
 
     if(this.live == true) {
         var client = new Client();
-        setInterval(function() {
+       this.mainInterval = setInterval(function() {
             client.get('http://192.168.1.56:3000', function(data) {
                 me.currentData = data;
                 me.render();
             });
         }, 1000);
     } else {
-        setInterval(function() {
+        this.mainInterval = setInterval(function() {
             me.currentData = me.dataExplorer.getData(me.currentSec);
             me.render();
             me.currentSec += 1;
@@ -119,8 +124,17 @@ play.prototype.run = function() {
     }
 
     var lastSendTrack = 1;
+    var midiWorking = false;
     this.input.on('message', function(deltaTime, message) {
         console.log('I´VE RECIVE MIDI!!!');
+        if(midiWorking) {
+            return;
+        }
+
+        midiWorking = true;
+        setTimeout(function() {
+            midiWorking = false;
+        }, 1000);
 
         if(me.playData.windDirection[0] != me.playData.windDirection[1]) {
             console.log('Changing windirection to ' + me.playData.windDirection[0]);
@@ -136,8 +150,14 @@ play.prototype.run = function() {
             me.sendMidiNote(3, me.windSpeedToMidi(me.playData.windSpeed[1]), 177);
         }
 
+        if(me.playData.flag[0] == 4 && me.playData.lastTrack == false) { //Final lab
+            console.log('Playing last track!');
+            me.playData.musicLab = me.endingMusicLab;
+            me.playData.lastTrack = true;
+        }
+
         if(lastSendTrack != me.playData.musicLab) {
-            if(me.maxTracksOverflow) {
+            if(me.maxTracksOverflow && me.playData.lastTrack == false) {
                 for(var i in me.tracksToStartFrom) {
                     if((me.tracksToStartFrom[i] - 1) == lastSendTrack) {
                         me.playData.musicLab = me.tracksToStartFrom[Math.floor(Math.random() * me.tracksToStartFrom.length)];
@@ -145,7 +165,7 @@ play.prototype.run = function() {
                 }
             }
 
-            if(me.playData.musicLab > me.maxTracks) {
+            if(me.playData.musicLab > me.maxTracks && me.playData.lastTrack == false) {
                 me.maxTracksOverflow = true;
                 me.playData.musicLab = me.tracksToStartFrom[Math.floor(Math.random() * me.tracksToStartFrom.length)]
             }
@@ -153,6 +173,16 @@ play.prototype.run = function() {
             lastSendTrack = me.playData.musicLab;
             console.log('SENDING MIDI TO CHANGE TRACK TO ' + me.playData.musicLab);
             me.sendMidiNote(me.playData.musicLab);
+
+            if(me.playData.lastTrack == true) {
+                if(me.playData.musicLab >= me.stopMusicLab) {
+                    console.log('THANK YOU FOR WATCHING!');
+                    me.sendMidi = false;
+                    clearInterval(me.mainInterval);
+                } else {
+                    me.playData.musicLab += 1;
+                }
+            }
         }
     });
 };
@@ -241,12 +271,14 @@ play.prototype.render = function() {
     }
 
     if(this.playData.lap !== this.playData.currentLab || this.firstTime) {
-        this.playData.lap = this.playData.currentLab;
-        console.log('Current lap:' + this.playData.currentLab);
-        this.playData.musicLab += 1;
-        console.log('Shifting music lap to: ' + this.playData.musicLab);
-        if(this.firstTime) {
-            this.sendMidiNote(this.playData.musicLab);
+        if(this.playData.lastTrack == false) {
+            this.playData.lap = this.playData.currentLab;
+            console.log('Current lap:' + this.playData.currentLab);
+            this.playData.musicLab += 1;
+            console.log('Shifting music lap to: ' + this.playData.musicLab);
+            if(this.firstTime) {
+                this.sendMidiNote(this.playData.musicLab);
+            }
         }
     }
 
@@ -282,7 +314,7 @@ play.prototype.render = function() {
     }
 
     this.playData.flag[0] = this.currentData.track.flag;
-    if(this.playData.flag[0] !== this.playData.flag[1] || this.firstTime) {
+    if(this.playData.flag[0] !== this.playData.flag[1] && me.playData.lastTrack == false) {
         this.playData.flag[1] = this.playData.flag[0];
         switch(this.playData.flag[0]) {
             case 1:
