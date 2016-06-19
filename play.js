@@ -481,9 +481,13 @@ play.prototype.readCars = function() {
 
 play.prototype.getCurrentSpeed = function() {
     var cars = this.currentData.cars;
-    
-    var percent =  100000/(cars[0].lastTimeInMiliseconds);
-    return Math.round(127*percent);
+
+    if(cars[0].lastTimeInMiliseconds) {
+        var percent =  100000/(cars[0].lastTimeInMiliseconds);
+        return Math.round(127*percent);
+    }
+
+    return this.playData.speed[1];
 };
 
 play.prototype.windDirectionToMidi = function(windirection) {
