@@ -285,13 +285,13 @@ play.prototype.render = function() {
     if(this.playData.pitDriver[0] > 0 && this.playData.pitDriver[0] != this.playData.pitDriver[1]) {
         this.playData.pitDriver[1] = this.playData.pitDriver[0];
         this.playCarNumber(this.playData.pitDriver[1]);
-        this.sendMidiNote(this.midiNoteMapping.inPit[0], 127, this.midiNoteMapping.inPit[1], 2500);
+        this.sendMidiNote(this.midiNoteMapping.inPit[0], 127, this.midiNoteMapping.inPit[1], 3000);
     }
 
     if(this.playData.driverChange[0] > 0 && this.playData.driverChange[0] != this.playData.driverChange[1]) {
         this.playData.driverChange[1] = this.playData.driverChange[0];
         this.playCarNumber(this.playData.driverChange[0]);
-        this.sendMidiNote(this.midiNoteMapping.changingDriver[0], 127, this.midiNoteMapping.changingDriver[1], 2500);
+        this.sendMidiNote(this.midiNoteMapping.changingDriver[0], 127, this.midiNoteMapping.changingDriver[1], 3000);
     }
 
     this.playData.frontCar[0] = this.currentData.cars[0].number;
@@ -299,7 +299,7 @@ play.prototype.render = function() {
         this.playData.frontCar[1] = this.playData.frontCar[0];
         console.log('New car has overtaken!');
         this.playCarNumber(this.playData.frontCar[0]);
-        this.sendMidiNote(this.midiNoteMapping.takesTheLead[0], 127, this.midiNoteMapping.takesTheLead[1], 2500);
+        this.sendMidiNote(this.midiNoteMapping.takesTheLead[0], 127, this.midiNoteMapping.takesTheLead[1], 3000);
     }
 
     this.playData.safetyCar[0] = this.currentData.track.safetyCar;
