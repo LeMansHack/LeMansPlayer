@@ -282,16 +282,16 @@ play.prototype.render = function() {
         }
     }
 
-    if(me.playData.pitDriver[0] > 0 && me.playData.pitDriver[0] != me.playData.pitDriver[1]) {
-        me.playData.pitDriver[1] = me.playData.pitDriver[0];
-        me.playCarNumber(me.playData.pitDriver[1]);
-        this.sendMidiNote(this.midiNoteMapping.inPit[0], 127, this.midiNoteMapping.inPit[1], 1500);
+    if(this.playData.pitDriver[0] > 0 && this.playData.pitDriver[0] != this.playData.pitDriver[1]) {
+        this.playData.pitDriver[1] = this.playData.pitDriver[0];
+        this.playCarNumber(this.playData.pitDriver[1]);
+        this.sendMidiNote(this.midiNoteMapping.inPit[0], 127, this.midiNoteMapping.inPit[1], 2000);
     }
 
-    if(me.playData.driverChange[0] > 0 && me.playData.driverChange[0] != me.playData.driverChange[1]) {
-        me.playData.driverChange[1] = me.playData.driverChange[0];
-        me.playCarNumber(me.playData.driverChange[0]);
-        this.sendMidiNote(this.midiNoteMapping.changingDriver[0], 127, this.midiNoteMapping.changingDriver[1], 1500);
+    if(this.playData.driverChange[0] > 0 && this.playData.driverChange[0] != this.playData.driverChange[1]) {
+        this.playData.driverChange[1] = this.playData.driverChange[0];
+        this.playCarNumber(this.playData.driverChange[0]);
+        this.sendMidiNote(this.midiNoteMapping.changingDriver[0], 127, this.midiNoteMapping.changingDriver[1], 2000);
     }
 
     this.playData.frontCar[0] = this.currentData.cars[0].number;
@@ -299,10 +299,7 @@ play.prototype.render = function() {
         this.playData.frontCar[1] = this.playData.frontCar[0];
         console.log('New car has overtaken!');
         this.playCarNumber(this.playData.frontCar[0]);
-
-        setTimeout(function() {
-            me.sendMidiNote(me.midiNoteMapping.takesTheLead[0], 127, me.midiNoteMapping.takesTheLead[1]);
-        }, 1000);
+        this.sendMidiNote(this.midiNoteMapping.takesTheLead[0], 127, this.midiNoteMapping.takesTheLead[1], 2000);
     }
 
     this.playData.safetyCar[0] = this.currentData.track.safetyCar;
