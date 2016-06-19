@@ -49,7 +49,8 @@ var play = function() {
         takesTheLead: [11, 177],
         inPit: [12, 177],
         changingDriver: [13, 177],
-        greenFlag: [14, 177]
+        greenFlag: [14, 177],
+        lazers: [15, 177]
     };
 
     this.tracksToStartFrom = [
@@ -221,6 +222,11 @@ play.prototype.render = function() {
             me.changingNumberOfDrivers = false;
             me.playData.numberOfDriverChanges[1] = number;
         });
+
+        if(this.playData.numberOfDriverChanges[0] >= 50) {
+            console.log('Fire lazers... Piv piv..');
+            this.sendMidiNote(this.midiNoteMapping.lazers[0], 127, this.midiNoteMapping.lazers[1]);
+        }
     }
 
     //Number of wet drivers
