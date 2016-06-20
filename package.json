@@ -1,0 +1,19 @@
+{
+  "name": "lemanhack16",
+  "version": "1.0.0",
+  "description": "## About",
+  "main": "play.js",
+  "dependencies": {
+    "graceful-fs": "^4.1.4",
+    "midi": "^0.9.4",
+    "moment": "^2.13.0",
+    "node-rest-client": "^1.8.0",
+    "prompt": "^1.0.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
