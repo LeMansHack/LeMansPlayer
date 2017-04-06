@@ -9,7 +9,7 @@ var dataExplorer = function() {
 
 
 dataExplorer.prototype.getDate = function(secound) {
-    var date = moment(1402765742359).add(secound, 'milliseconds');
+    var date = moment(1402765752863).add(secound, 'milliseconds');
     return date.valueOf();
 };
 
