@@ -79,7 +79,7 @@ var play = function() {
     this.firstTime = true;
     this.sendMidi = true;
     this.maxTracks = 101;
-    this.maxTracksOverflow = true;
+    this.maxTracksOverflow = false;
 
     this.changingPitStatus = false;
     this.changingOldPitOutStatus = false;
@@ -87,7 +87,7 @@ var play = function() {
     this.changingNumberOfDrivers = false;
     this.changingNumberOfWetDrivers = false;
 
-    this.live = true;
+    this.live = false;
     this.spooling = false;
     this.mainInterval = null;
 
@@ -549,5 +549,3 @@ if(myArgs[0] && myArgs[0].length > 0) {
         play.run();
     }, 10000);
 }
-
-
