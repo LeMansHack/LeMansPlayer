@@ -1,10 +1,11 @@
-var midi = require('midi');
-var data = require('./dataexplorer.js');
-var Client = require('node-rest-client').Client;
-var myArgs = process.argv.slice(2);
-var fs = require('graceful-fs');
+let midi = require('midi');
+let data = require('./dataexplorer.js');
+let Client = require('node-rest-client').Client;
+let myArgs = process.argv.slice(2);
+let fs = require('graceful-fs');
+let abletonApi = require('abletonapi');
 
-var play = function() {
+let play = function() {
     this.currentData = null;
     this.dataExplorer = new data();
     this.oldCarData = [ ];
@@ -98,17 +99,17 @@ var play = function() {
 };
 
 play.prototype.run = function() {
-    var me = this;
+    let me = this;
     if(fs.existsSync(this.saveFile)) {
         console.log('Playing from ' + this.saveFile);
-        var fileData = JSON.parse(fs.readFileSync(this.saveFile));
-        for(var fi in fileData) {
+        let fileData = JSON.parse(fs.readFileSync(this.saveFile));
+        for(let fi in fileData) {
             this.playData[fi] = fileData[fi];
         }
     }
 
     if(this.live == true) {
-        var client = new Client();
+        let client = new Client();
        this.mainInterval = setInterval(function() {
             client.get('http://192.168.1.56:3000', function(data) {
                 me.currentData = data;
@@ -123,8 +124,8 @@ play.prototype.run = function() {
         }, 1);
     }
 
-    var lastSendTrack = 1;
-    var midiWorking = false;
+    let lastSendTrack = 1;
+    let midiWorking = false;
     this.input.on('message', function(deltaTime, message) {
         console.log('I´VE RECIVE MIDI!!!');
         if(midiWorking) {
@@ -158,7 +159,7 @@ play.prototype.run = function() {
 
         if(lastSendTrack != me.playData.musicLab) {
             if(me.maxTracksOverflow && me.playData.lastTrack == false) {
-                for(var i in me.tracksToStartFrom) {
+                for(let i in me.tracksToStartFrom) {
                     if((me.tracksToStartFrom[i] - 1) == lastSendTrack) {
                         me.playData.musicLab = me.tracksToStartFrom[Math.floor(Math.random() * me.tracksToStartFrom.length)];
                     }
@@ -213,7 +214,7 @@ play.prototype.render = function() {
         this.turnDaKnop(this.midiNoteMapping.speed[0], this.playData.speed[1], this.midiNoteMapping.speed[1], this.playData.speed[2], 100);
     }
 
-    var me = this;
+    let me = this;
     //Pit status
     if(!this.changingPitStatus && this.playData.pitStatus[0] !== this.playData.pitStatus[1]) {
         console.log('Changing pit status to ' + this.playData.pitStatus[0]);
@@ -349,7 +350,7 @@ play.prototype.render = function() {
 
 play.prototype.playCarNumber = function(carnumber) {
     console.log('Sound carnumber ' + carnumber );
-    var me = this;
+    let me = this;
     setTimeout(function() {
         switch(carnumber) {
             case "1":
@@ -412,7 +413,7 @@ play.prototype.sendMidiNote = function(note, value, channel, delay) {
     }
 
     if(delay) {
-        var me = this;
+        let me = this;
         setTimeout(function() {
             console.log('Sending midi node: ' + note + ',' + value + ',' + channel);
             me.output.sendMessage([channel, note, value]);
@@ -433,7 +434,7 @@ play.prototype.turnDaKnop = function(note, value, channel, oldValue, delay, call
         return;
     }
 
-    var self = this;
+    let self = this;
     if(self.spooling == true) {
         console.log('Spool to value ' + value);
         if(callback) {
@@ -442,7 +443,7 @@ play.prototype.turnDaKnop = function(note, value, channel, oldValue, delay, call
         return;
     }
 
-    var interVal = setInterval(function() {
+    let interVal = setInterval(function() {
         if(value != oldValue) {
             console.log('Turning da knop from ' + oldValue);
             oldValue = (oldValue < value) ? oldValue + 1 : oldValue - 1;
@@ -460,17 +461,17 @@ play.prototype.turnDaKnop = function(note, value, channel, oldValue, delay, call
 };
 
 play.prototype.readCars = function() {
-    var cars = this.currentData.cars;
-    var accLabs = 0;
-    var numberOfCars = cars.length;
-    var pits = 0;
-    var pitOut = 0;
-    var numberOfCarChanges = 0;
-    var numberOfDriverChanges = 0;
-    var numberOfWetTires = 0;
-    var running = 0;
+    let cars = this.currentData.cars;
+    let accLabs = 0;
+    let numberOfCars = cars.length;
+    let pits = 0;
+    let pitOut = 0;
+    let numberOfCarChanges = 0;
+    let numberOfDriverChanges = 0;
+    let numberOfWetTires = 0;
+    let running = 0;
 
-    for(var i in cars) {
+    for(let i in cars) {
         accLabs += cars[i].laps;
         if(cars[i].driverStatus == 4) {
             if(parseInt(cars[i].number) <= 13) {
@@ -516,10 +517,10 @@ play.prototype.readCars = function() {
 };
 
 play.prototype.getCurrentSpeed = function() {
-    var cars = this.currentData.cars;
+    let cars = this.currentData.cars;
 
     if(cars[0].lastTimeInMiliseconds) {
-        var percent =  100000/(cars[0].lastTimeInMiliseconds);
+        let percent =  100000/(cars[0].lastTimeInMiliseconds);
         return Math.round(127*percent);
     }
 
@@ -527,16 +528,16 @@ play.prototype.getCurrentSpeed = function() {
 };
 
 play.prototype.windDirectionToMidi = function(windirection) {
-    var percent = windirection/360;
+    let percent = windirection/360;
     return Math.round(127*percent);
 };
 
 play.prototype.windSpeedToMidi = function(windspeed) {
-    var percent = windspeed/20;
+    let percent = windspeed/20;
     return Math.round(127*percent);
 };
 
-var play = new play();
+let play = new play();
 if(myArgs[0] && myArgs[0].length > 0) {
     console.log('Sppoling to lap ' + myArgs[0]);
     play.spool(myArgs[0]);

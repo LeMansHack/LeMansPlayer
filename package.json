@@ -4,6 +4,7 @@
   "description": "## About",
   "main": "play.js",
   "dependencies": {
+    "abletonapi": "https://github.com/LeMansHack/AbletonAPI.git",
     "graceful-fs": "^4.1.4",
     "midi": "^0.9.4",
     "moment": "^2.13.0",
