@@ -1,5 +1,5 @@
 let midi = require('midi');
-let data = require('./dataexplorer.js');
+let data = require('dataexplorer');
 let Client = require('node-rest-client').Client;
 let myArgs = process.argv.slice(2);
 let fs = require('graceful-fs');

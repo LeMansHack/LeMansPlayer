@@ -6,6 +6,7 @@
   "dependencies": {
     "abletonapi": "https://github.com/LeMansHack/AbletonAPI.git",
     "graceful-fs": "^4.1.4",
+    "lemandataexplorer": "https://github.com/LeMansHack/DataExplorer.git",
     "midi": "^0.9.4",
     "moment": "^2.13.0",
     "node-rest-client": "^1.8.0",
