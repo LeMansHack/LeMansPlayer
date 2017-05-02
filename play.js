@@ -1,5 +1,5 @@
 let midi = require('midi');
-let data = require('dataexplorer');
+let data = require('lemandataexplorer');
 let Client = require('node-rest-client').Client;
 let myArgs = process.argv.slice(2);
 let fs = require('graceful-fs');
@@ -537,16 +537,16 @@ play.prototype.windSpeedToMidi = function(windspeed) {
     return Math.round(127*percent);
 };
 
-let play = new play();
+let PlayObject = new play();
 if(myArgs[0] && myArgs[0].length > 0) {
     console.log('Sppoling to lap ' + myArgs[0]);
-    play.spool(myArgs[0]);
+    PlayObject.spool(myArgs[0]);
     console.log('Playing lap ' + myArgs[0]);
-    play.run();
+    PlayObject.run();
 } else {
     console.log('Please wait 10 sec for MIDI driver to init...');
     setTimeout(function() {
         console.log('Starting MIDI playback...');
-        play.run();
+        PlayObject.run();
     }, 10000);
 }
