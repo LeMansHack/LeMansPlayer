@@ -3,7 +3,7 @@
 ## About
 Midi controller for LeMan data to control knops and playback in Ableton Live from data
 
-##Requirements
+## Requirements
 - Ableton Live
 - Max4Live
 - NodeJS
