@@ -1,16 +1,18 @@
 # LeManHack 16 MIDI project
 
 ## About
-
 Midi controller for LeMan data to control knops and playback in Ableton Live from data
 
+##Requirements
+- Ableton Live
+- Max4Live
+- NodeJS
+
 ## How to install
-
 1. Clone repo
-2. Run `npm install`
+2. Run `yarn install`
 
-## Hot to run
-
+## How to run
 To playback test data and live data when ready, use the command `node play.js`. This command will start playback from live or test data. If using test data set it starts from top and runs continually to finish.
 **Please be aware that MIDI controllers take 10 seconds to initialise when you start running the program. Therefore there will be no sund in 10 seconds**
 
