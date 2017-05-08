@@ -18,7 +18,7 @@ class Player {
 
         //[0,0,0] => [liveValue, setValue, oldValue]
         this.playData = {
-            musicLab: 0,
+            musicLab: -1,
             currentLab: -1,
             lap: 0,
             speed: [80, 80, 0],
@@ -37,6 +37,7 @@ class Player {
             driverChange: [0,0],
             lastTrack: false
         };
+
         this.midiNoteMapping = {
             speed: [1, 177],
             windDirection: [2, 177],
@@ -55,31 +56,13 @@ class Player {
             lazers: [15, 177]
         };
 
-        this.tracksToStartFrom = [
-            2,
-            12,
-            17,
-            22,
-            28,
-            32,
-            38,
-            44,
-            52,
-            57,
-            62,
-            68,
-            72,
-            78,
-            83,
-            88,
-            93,
-            98
-        ];
+        this.tracksToStartFrom = [ ];
+        this.scenes = { };
 
         this.currentSec = 0;
         this.firstTime = true;
         this.sendMidi = true;
-        this.maxTracks = 101;
+        this.maxTracks = 0;
         this.maxTracksOverflow = false;
 
         this.changingPitStatus = false;
@@ -96,95 +79,126 @@ class Player {
         this.stopMusicLab = 106;
 
         this.saveFile = './playdata.json';
+
+        this.lastSendTrack = 1;
+        this.midiWorking = false;
     }
 
+    /**
+     * Start the music loop
+     */
     run() {
-        let me = this;
-        if(fs.existsSync(this.saveFile)) {
-            console.log('Playing from ' + this.saveFile);
-            let fileData = JSON.parse(fs.readFileSync(this.saveFile));
-            for(let fi in fileData) {
-                this.playData[fi] = fileData[fi];
+        this.parseAbletonData().then(() => {
+            if(fs.existsSync(this.saveFile)) {
+                console.log('Playing from ' + this.saveFile);
+                let fileData = JSON.parse(fs.readFileSync(this.saveFile));
+                for(let fi in fileData) {
+                    this.playData[fi] = fileData[fi];
+                }
             }
+
+            if(this.live === true) {
+                let client = new Client();
+                this.mainInterval = setInterval(() => {
+                    client.get('http://192.168.1.56:3000', (data) => {
+                        this.currentData = data;
+                        this.render();
+                    });
+                }, 1000);
+            } else {
+                this.mainInterval = setInterval(() => {
+                    this.currentData = this.dataExplorer.getData(this.currentSec);
+                    this.render();
+                    this.currentSec += 1;
+                }, 1);
+            }
+
+            //Setup MIDI listener
+            this.input.on('message', () => { this.onMidiNote() });
+        });
+    }
+
+    onMidiNote() {
+        console.log('I´VE RECIVE MIDI!!!');
+        if(this.midiWorking) {
+            return;
         }
 
-        if(this.live == true) {
-            let client = new Client();
-            this.mainInterval = setInterval(function() {
-                client.get('http://192.168.1.56:3000', function(data) {
-                    me.currentData = data;
-                    me.render();
-                });
-            }, 1000);
-        } else {
-            this.mainInterval = setInterval(function() {
-                me.currentData = me.dataExplorer.getData(me.currentSec);
-                me.render();
-                me.currentSec += 1;
-            }, 1);
+        this.midiWorking = true;
+        setTimeout(() => {
+            this.midiWorking = false;
+        }, 1000);
+
+        if(this.playData.windDirection[0] !== this.playData.windDirection[1]) {
+            console.log('Changing windirection to ' + this.playData.windDirection[0]);
+            this.playData.windDirection[2] = this.playData.windDirection[1];
+            this.playData.windDirection[1] = this.playData.windDirection[0];
+            this.sendMidiNote(2, this.windDirectionToMidi(this.playData.windDirection[1]), 177);
         }
 
-        let lastSendTrack = 1;
-        let midiWorking = false;
-        this.input.on('message', function(deltaTime, message) {
-            console.log('I´VE RECIVE MIDI!!!');
-            if(midiWorking) {
-                return;
-            }
+        if(this.playData.windSpeed[0] !== this.playData.windSpeed[1]) {
+            console.log('Changing windspeed to ' + this.playData.windSpeed[0]);
+            this.playData.windSpeed[2] = this.playData.windSpeed[1];
+            this.playData.windSpeed[1] = this.playData.windSpeed[0];
+            this.sendMidiNote(3, this.windSpeedToMidi(this.playData.windSpeed[1]), 177);
+        }
 
-            midiWorking = true;
-            setTimeout(function() {
-                midiWorking = false;
-            }, 1000);
+        if(this.playData.flag[0] === 4 && this.playData.lastTrack === false) { //Final lab
+            console.log('Playing last track!');
+            this.playData.musicLab = this.endingMusicLab;
+            this.playData.lastTrack = true;
+        }
 
-            if(me.playData.windDirection[0] != me.playData.windDirection[1]) {
-                console.log('Changing windirection to ' + me.playData.windDirection[0]);
-                me.playData.windDirection[2] = me.playData.windDirection[1];
-                me.playData.windDirection[1] = me.playData.windDirection[0];
-                me.sendMidiNote(2, me.windDirectionToMidi(me.playData.windDirection[1]), 177);
-            }
-
-            if(me.playData.windSpeed[0] != me.playData.windSpeed[1]) {
-                console.log('Changing windspeed to ' + me.playData.windSpeed[0]);
-                me.playData.windSpeed[2] = me.playData.windSpeed[1];
-                me.playData.windSpeed[1] = me.playData.windSpeed[0];
-                me.sendMidiNote(3, me.windSpeedToMidi(me.playData.windSpeed[1]), 177);
-            }
-
-            if(me.playData.flag[0] == 4 && me.playData.lastTrack == false) { //Final lab
-                console.log('Playing last track!');
-                me.playData.musicLab = me.endingMusicLab;
-                me.playData.lastTrack = true;
-            }
-
-            if(lastSendTrack != me.playData.musicLab) {
-                if(me.maxTracksOverflow && me.playData.lastTrack == false) {
-                    for(let i in me.tracksToStartFrom) {
-                        if((me.tracksToStartFrom[i] - 1) == lastSendTrack) {
-                            me.playData.musicLab = me.tracksToStartFrom[Math.floor(Math.random() * me.tracksToStartFrom.length)];
-                        }
-                    }
-                }
-
-                if(me.playData.musicLab > me.maxTracks && me.playData.lastTrack == false) {
-                    me.maxTracksOverflow = true;
-                    me.playData.musicLab = me.tracksToStartFrom[Math.floor(Math.random() * me.tracksToStartFrom.length)]
-                }
-
-                lastSendTrack = me.playData.musicLab;
-                console.log('SENDING MIDI TO CHANGE TRACK TO ' + me.playData.musicLab);
-                me.sendMidiNote(me.playData.musicLab);
-
-                if(me.playData.lastTrack == true) {
-                    if(me.playData.musicLab >= me.stopMusicLab) {
-                        console.log('THANK YOU FOR WATCHING!');
-                        me.sendMidi = false;
-                        clearInterval(me.mainInterval);
-                    } else {
-                        me.playData.musicLab += 1;
+        if(this.lastSendTrack !== this.playData.musicLab) {
+            if(this.maxTracksOverflow && this.playData.lastTrack === false) {
+                for(let i in this.tracksToStartFrom) {
+                    if((this.tracksToStartFrom[i] - 1) === this.lastSendTrack) {
+                        this.playData.musicLab = this.tracksToStartFrom[Math.floor(Math.random() * this.tracksToStartFrom.length)];
                     }
                 }
             }
+
+            if(this.playData.musicLab > this.maxTracks && this.playData.lastTrack === false) {
+                this.maxTracksOverflow = true;
+                this.playData.musicLab = this.tracksToStartFrom[Math.floor(Math.random() * this.tracksToStartFrom.length)]
+            }
+
+            this.lastSendTrack = this.playData.musicLab;
+            console.log('SENDING MIDI TO CHANGE TRACK TO ' + this.playData.musicLab);
+            abletonApi.playScene(this.playData.musicLab);
+
+            if(this.playData.lastTrack === true) {
+                if(this.playData.musicLab >= this.stopMusicLab) {
+                    console.log('THANK YOU FOR WATCHING!');
+                    this.sendMidi = false;
+                    clearInterval(this.mainInterval);
+                } else {
+                    this.playData.musicLab += 1;
+                }
+            }
+        }
+    }
+
+    /**
+     * Reads static data from ableton
+     * @returns {Promise.<TResult>}
+     */
+    parseAbletonData() {
+        return abletonApi.getScenes().then((scenes) => {
+            this.scenes = scenes.filter((scene) => {
+               return (scene.name.match(/^[0-9][0-9]/gi));
+            });
+
+            this.maxTracks = this.scenes.length;
+
+            let lastName = null;
+            this.tracksToStartFrom = this.scenes.filter((track) => {
+               let check = (track.name != lastName);
+               lastName = track.name;
+               return check;
+            }).map((track) => {
+                return track.id
+            });
         });
     }
 
@@ -272,13 +286,13 @@ class Player {
         }
 
         if(this.playData.lap !== this.playData.currentLab || this.firstTime) {
-            if(this.playData.lastTrack == false) {
+            if(this.playData.lastTrack === false) {
                 this.playData.lap = this.playData.currentLab;
                 console.log('Current lap:' + this.playData.currentLab);
                 this.playData.musicLab += 1;
                 console.log('Shifting music lap to: ' + this.playData.musicLab);
                 if(this.firstTime) {
-                    this.sendMidiNote(this.playData.musicLab);
+                    abletonApi.playScene(this.playData.musicLab);
                 }
             }
         }
@@ -286,7 +300,7 @@ class Player {
         if(this.playData.pitDriver[0] > 0 && this.playData.pitDriver[0] != this.playData.pitDriver[1]) {
             this.playData.pitDriver[1] = this.playData.pitDriver[0];
             this.playCarNumber(this.playData.pitDriver[1]);
-            this.sendMidiNote(this.midiNoteMapping.inPit[0], 127, this.midiNoteMapping.inPit[1], 3000);
+            this.sendNote(this.midiNoteMapping.inPit[0], 127, this.midiNoteMapping.inPit[1], 3000);
         }
 
         if(this.playData.driverChange[0] > 0 && this.playData.driverChange[0] != this.playData.driverChange[1]) {
@@ -400,7 +414,7 @@ class Player {
     };
 
     sendMidiNote(note, value, channel, delay) {
-        if(!this.sendMidi) {
+        if(!this.sendMidMidii) {
             return;
         }
 
@@ -415,11 +429,11 @@ class Player {
         if(delay) {
             let me = this;
             setTimeout(function() {
-                console.log('Sending midi node: ' + note + ',' + value + ',' + channel);
+                //console.log('Sending midi node: ' + note + ',' + value + ',' + channel);
                 me.output.sendMessage([channel, note, value]);
             }, delay);
         } else {
-            console.log('Sending midi node: ' + note + ',' + value + ',' + channel);
+            //console.log('Sending midi node: ' + note + ',' + value + ',' + channel);
             this.output.sendMessage([channel, note, value]);
         }
 
@@ -445,12 +459,12 @@ class Player {
 
         let interVal = setInterval(function() {
             if(value != oldValue) {
-                console.log('Turning da knop from ' + oldValue);
+                //console.log('Turning da knop from ' + oldValue);
                 oldValue = (oldValue < value) ? oldValue + 1 : oldValue - 1;
-                console.log('to ' + oldValue);
+                //console.log('to ' + oldValue);
                 self.sendMidiNote(note, oldValue, channel);
             } else {
-                console.log('Turning knop finaly to value ' + oldValue);
+                //console.log('Turning knop finaly to value ' + oldValue);
                 self.sendMidiNote(note, oldValue, channel);
                 if(callback) {
                     callback(oldValue);
@@ -539,7 +553,8 @@ class Player {
 }
 
 let PlayObject = new Player();
-if(myArgs[0] && myArgs[0].length > 0) {
+PlayObject.run();
+/*if(myArgs[0] && myArgs[0].length > 0) {
     console.log('Sppoling to lap ' + myArgs[0]);
     PlayObject.spool(myArgs[0]);
     console.log('Playing lap ' + myArgs[0]);
@@ -550,4 +565,4 @@ if(myArgs[0] && myArgs[0].length > 0) {
         console.log('Starting MIDI playback...');
         PlayObject.run();
     }, 10000);
-}
+}*/
