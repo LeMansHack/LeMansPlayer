@@ -10,7 +10,8 @@
     "midi": "^0.9.4",
     "moment": "^2.13.0",
     "node-rest-client": "^1.8.0",
-    "prompt": "^1.0.0"
+    "prompt": "^1.0.0",
+    "tween.js": "^16.6.0"
   },
   "devDependencies": {},
   "scripts": {

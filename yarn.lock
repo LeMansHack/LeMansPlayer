@@ -86,14 +86,6 @@ graceful-fs@^4.1.11, graceful-fs@^4.1.4:
   version "4.1.11"
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.1.11.tgz#0e8bdfe4d1ddb8854d64e04ea7c00e2a026e5658"
 
-"https://github.com/LeMansHack/DataExplorer.git":
-  name lemandataexplorer
-  version "1.0.0"
-  resolved "https://github.com/LeMansHack/DataExplorer.git#2f294804b987aa1baaf65610c477d43223ba8e88"
-  dependencies:
-    graceful-fs "^4.1.11"
-    moment "^2.18.1"
-
 i@0.3.x:
   version "0.3.5"
   resolved "https://registry.yarnpkg.com/i/-/i-0.3.5.tgz#1d2b854158ec8169113c6cb7f6b6801e99e211d5"
@@ -112,6 +104,13 @@ inherits@2:
 isstream@0.1.x:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/isstream/-/isstream-0.1.2.tgz#47e63f7af55afa6f92e1500e690eb8b8529c099a"
+
+"lemandataexplorer@https://github.com/LeMansHack/DataExplorer.git":
+  version "1.0.0"
+  resolved "https://github.com/LeMansHack/DataExplorer.git#dd56bcb5854d88f14f93804ee40a3656641fe2fc"
+  dependencies:
+    graceful-fs "^4.1.11"
+    moment "^2.18.1"
 
 lodash@^4.0.0:
   version "4.17.4"
@@ -232,6 +231,10 @@ sax@>=0.6.0:
 stack-trace@0.0.x:
   version "0.0.9"
   resolved "https://registry.yarnpkg.com/stack-trace/-/stack-trace-0.0.9.tgz#a8f6eaeca90674c333e7c43953f275b451510695"
+
+tween.js:
+  version "16.6.0"
+  resolved "https://registry.yarnpkg.com/tween.js/-/tween.js-16.6.0.tgz#739104c9336cc4f11ee53f9ce7cede51e6723624"
 
 utile@0.3.x:
   version "0.3.0"

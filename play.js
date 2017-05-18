@@ -4,6 +4,7 @@ let Client = require('node-rest-client').Client;
 let myArgs = process.argv.slice(2);
 let fs = require('graceful-fs');
 let abletonApi = require('abletonapi');
+let TWEEN = require('tween.js');
 
 class Player {
     constructor() {
@@ -21,7 +22,7 @@ class Player {
             musicLab: -1,
             currentLab: -1,
             lap: 0,
-            speed: [80, 80, 0],
+            speed: [120, 120, 0],
             windDirection: [0,0,0],
             windSpeed: [0,0,0],
             frontCar: [0,0,0],
@@ -39,7 +40,6 @@ class Player {
         };
 
         this.midiNoteMapping = {
-            speed: [1, 177],
             windDirection: [2, 177],
             windSpeed: [3, 177],
             changingPitStatus: [4, 177],
@@ -88,6 +88,10 @@ class Player {
      * Start the music loop
      */
     run() {
+        setInterval(() => {
+            TWEEN.update();
+        }, 100);
+
         this.parseAbletonData().then(() => {
             if(fs.existsSync(this.saveFile)) {
                 console.log('Playing from ' + this.saveFile);
@@ -202,9 +206,31 @@ class Player {
         });
     }
 
+    /**
+     * Sets BPM of track by the current speed of cars
+     */
+    setTrackBPM() {
+        if(!this.settingTrackBpm) {
+            this.settingTrackBpm = true;
+            let speed = this.getCurrentSpeed();
+            abletonApi.getTempo().then((tempo) => {
+                if(speed.toFixed(2) !== tempo.toFixed(2)) {
+                    this.turnDaKnopBetter({speed: tempo.toFixed(2)}, {speed: speed.toFixed(2)}, 5000, (object) =>  {
+                        abletonApi.setTempo(object.speed.toFixed(2));
+                    }, () => {
+                        this.settingTrackBpm = false;
+                    });
+                } else {
+                    this.settingTrackBpm = false;
+                }
+            });
+        }
+    }
+
     render() {
         this.readCars();
-        this.playData.speed[0] = this.getCurrentSpeed();
+        this.setTrackBPM(); //Sets track BPM
+
         this.playData.safetyCar[0] = this.currentData.track.safetyCar;
 
         this.playData.windDirection[0] = this.currentData.track.weather.windDirection;
@@ -219,13 +245,6 @@ class Player {
             this.playData.windSpeed[2] = this.playData.windSpeed[1];
             this.playData.windSpeed[1] = this.playData.windSpeed[0];
             this.sendMidiNote(this.midiNoteMapping.windSpeed[0], this.windSpeedToMidi(this.playData.windSpeed[1]), this.midiNoteMapping.windSpeed[1]);
-        }
-
-        if(this.playData.speed[0] !== this.playData.speed[1] || this.firstTime) {
-            console.log('Setting current speed to:' + this.playData.speed[0]);
-            this.playData.speed[2] = this.playData.speed[1];
-            this.playData.speed[1] = this.playData.speed[0];
-            this.turnDaKnop(this.midiNoteMapping.speed[0], this.playData.speed[1], this.midiNoteMapping.speed[1], this.playData.speed[2], 100);
         }
 
         let me = this;
@@ -439,6 +458,15 @@ class Player {
 
     };
 
+    turnDaKnopBetter(from, to, time, update, complete) {
+        return new TWEEN.Tween(from)
+            .to(to, time)
+            .onUpdate(function() {
+                update(this);
+            }).onComplete(complete)
+            .start();
+    }
+
     turnDaKnop(note, value, channel, oldValue, delay, callback) {
         if(!delay) {
             delay = 500;
@@ -535,7 +563,7 @@ class Player {
 
         if(cars[0].lastTimeInMiliseconds) {
             let percent =  100000/(cars[0].lastTimeInMiliseconds);
-            return Math.round(127*percent);
+            return Math.round(230*percent);
         }
 
         return this.playData.speed[1];
