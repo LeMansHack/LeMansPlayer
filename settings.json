@@ -5,5 +5,7 @@
   "stopMusicTrack": 106,
   "snareMaxValue": 85,
   "kickMaxValue": 63,
-  "kickWindSpeedDivider": 20
+  "kickWindSpeedDivider": 20,
+  "filterDriverChangeivision": 30,
+  "masterFilterMaxVal": 80
 }

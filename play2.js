@@ -27,6 +27,7 @@ class Player {
         this.currentData = null; //Object containing current loaded data
         this.oldCarData = { }; //Object containing data of car positions in last update
         this.firstTime = true; //Tells if we area rendering the first loop
+        this.runningFilterChange = false;
 
 
         //File data
@@ -106,7 +107,7 @@ class Player {
      */
     parseAbletonData() {
         console.log('Parsing ableton data...');
-        //abletonApi.getParametersForDevice(3, 0).then((data) => {
+        //abletonApi.getParametersForDevice('master_track', 0).then((data) => {
         //   console.log('paramereter data', data);
         //});
 
@@ -199,7 +200,9 @@ class Player {
         this.readCars();
         this.readTrackData();
         this.readFlagStatus();
+
         this.setTrackBpm();
+        this.setMasterFilter();
         this.updateFile();
         this.configUpdate = false;
     }
@@ -240,6 +243,35 @@ class Player {
         }
     }
 
+    setMasterFilter() {
+        let oldVal = this.checkPlayDataChange('numberOfPlaceChanges', 'setMasterFilterNumberOfDriverChanges', true);
+        if(oldVal !== false) {
+            let oldPercent = oldVal/this.config.filterDriverChangeivision;
+            let oldKnop = Math.round(this.config.masterFilterMaxVal*oldPercent);
+
+            let driverchanges = this.getPlayData('numberOfPlaceChanges');
+            let percent = driverchanges/this.config.filterDriverChangeivision;
+            let knop = Math.round(this.config.masterFilterMaxVal*percent);
+
+            console.log('Changing filter using driverchanges', {driverchanges, percent, knop});
+            if(!this.runningFilterChange) {
+                this.runningFilterChange = true;
+                new TWEEN.Tween({x: oldKnop})
+                    .to({x: knop}, 5000)
+                    .onUpdate(function() {
+                        console.log('Changing master filter', this.x.toFixed(2));
+                        abletonApi.setParameterForDevice('master_track', 0, 5, this.x.toFixed(2));
+                    })
+                    .onComplete(() => {
+                        this.runningFilterChange = false;
+                    })
+                    .start();
+            } else {
+                console.log('Already running filter change!');
+            }
+        }
+    }
+
     /**
      * Reads flag status
      */
@@ -275,7 +307,6 @@ class Player {
         this.setPlayData('windSpeed', weather.windSpeed);
         this.setPlayData('airTemp', weather.airTemp);
         this.setPlayData('roadTemp', weather.roadTemp);
-        this.setPlayData('airPreassure', weather.airPreassure);
         this.setPlayData('airPreassure', weather.airPreassure);
     }
 
