@@ -1,3 +1,4 @@
 {
-  "bpmDivider": 1470
+  "bpmDivider": 1470,
+  "trackOverflow": false
 }

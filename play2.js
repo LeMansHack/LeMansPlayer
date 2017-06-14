@@ -168,7 +168,8 @@ class Player {
     nextTrack() {
         let currentTrack = this.getPlayData('musicLab', -1);
         let nextTrack = currentTrack + 1;
-        if((nextTrack > this.maxTracks) && !this.getPlayData('maxTracksOverflow')) {
+        if(((nextTrack > this.maxTracks) || this.config.trackOverflow) && !this.getPlayData('maxTracksOverflow')) {
+            console.log('Track overflow enabled!');
             this.setPlayData('maxTracksOverflow', true);
         }
 
@@ -208,6 +209,7 @@ class Player {
             new TWEEN.Tween({x: currentVal})
                 .to({x: newVal}, 5000)
                 .onUpdate(function() {
+                    console.log('Changing bpm', this.x.toFixed(2));
                     abletonApi.setTempo(this.x.toFixed(2));
                 })
                 .start();
