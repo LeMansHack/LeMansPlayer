@@ -44,6 +44,9 @@ class Player {
 
         //Enviroment data
         this.live = false; //Set to true if track is running live
+        this.config = {};
+        this.configModDate = null;
+        this.configUpdate = false;
     }
 
     /**
@@ -65,7 +68,7 @@ class Player {
             if(this.live === true) {
                 let client = new Client();
                 this.mainInterval = setInterval(() => {
-                    client.get('http://192.168.1.56:3000', (data) => {
+                    client.get('http://localhost:3000', (data) => {
                         this.currentData = data;
                         this.render();
 
@@ -149,6 +152,10 @@ class Player {
             this.setPlayData('musicLab', this.endingMusicTrack - 1);
         }
 
+        if(this.firstTime && this.getPlayData('musicLab')) {
+            abletonApi.playScene(this.getPlayData('musicLab'));
+        }
+
         if(this.checkPlayDataChange('currentLab', 'musicLabChk')) {
             abletonApi.playScene(this.nextTrack());
         }
@@ -182,9 +189,29 @@ class Player {
      * Main loop for taking actions on data
      */
     render() {
+        this.readConfig();
         this.readCars();
         this.readFlagStatus();
+        this.setTrackBpm();
         this.updateFile();
+        this.configUpdate = false;
+    }
+
+    setTrackBpm() {
+        let oldVal = this.checkPlayDataChange('firstCarLabTime', 'setTrackBpm', true);
+        if(oldVal !== false || this.configUpdate) {
+            let speedDivider = this.config.bpmDivider;
+            let newVal = Math.round(this.getPlayData('firstCarLabTime') / speedDivider);
+            let currentVal = (this.configUpdate) ? newVal : Math.round(oldVal/speedDivider);
+
+            console.log('Changing BPM', {from: currentVal, to: newVal});
+            new TWEEN.Tween({x: currentVal})
+                .to({x: newVal}, 5000)
+                .onUpdate(function() {
+                    abletonApi.setTempo(this.x.toFixed(2));
+                })
+                .start();
+        }
     }
 
     /**
@@ -229,9 +256,12 @@ class Player {
         let numberOfDriverChanges = 0;
         let numberOfWetTires = 0;
         let running = 0;
+        let averageSpeed = 0;
 
         for(let i in cars) {
             accLabs += cars[i].laps;
+            averageSpeed += cars[i].averageSpeed;
+
             if(cars[i].driverStatus == 4) {
                 if(parseInt(cars[i].number) <= 13) {
                     this.setPlayData('pitDriver', cars[i].number);
@@ -273,6 +303,15 @@ class Player {
         this.setPlayData('numberOfDriverChanges', Math.round(127 * (numberOfDriverChanges*10/numberOfCars)) + 1);
         this.setPlayData('numberOfWetTires', Math.round(127 * (numberOfWetTires*3/numberOfCars)) + 1);
         this.setPlayData('currentLab', Math.abs(accLabs/numberOfCars).toFixed(1));
+
+        if(averageSpeed <= 0) {
+            averageSpeed = 200;
+        } else {
+            averageSpeed = Math.abs(averageSpeed/numberOfCars).toFixed(2);
+        }
+
+        this.setPlayData('averageSpeed', averageSpeed);
+        this.setPlayData('firstCarLabTime', cars[0].lastTimeInMiliseconds);
         this.oldCarData = cars;
     };
 
@@ -304,12 +343,12 @@ class Player {
      * @param key
      * @returns {boolean}
      */
-    checkPlayDataChange(key, checkId, defaultValue) {
+    checkPlayDataChange(key, checkId, returnOld) {
         if(!checkId) {
             throw new Error('Checkid should be defined!');
         }
 
-        let currentValue = this.getPlayData(key, defaultValue);
+        let currentValue = this.getPlayData(key);
         if(typeof this.chkValues[checkId] !== 'undefined') {
             if(this.chkValues[checkId] !== currentValue) {
                 console.log('Updated chackvalue', {
@@ -317,19 +356,22 @@ class Player {
                     currentValue: currentValue,
                     oldValue: this.chkValues[checkId]
                 });
+                let old = this.chkValues[checkId];
                 this.chkValues[checkId] = currentValue;
-                return true;
+                return (returnOld) ? old : true;
             }
 
             return false;
-        } else {
+        } else if(currentValue !== null) {
             console.log('Creating check value', {
                 checkId: checkId,
                 currentValue: currentValue,
             });
             this.chkValues[checkId] = currentValue;
-            return true;
+            return  (returnOld) ? currentValue : true;
         }
+
+        return false;
     }
 
     /**
@@ -342,6 +384,19 @@ class Player {
               chkValues: this.chkValues
             };
             fs.writeFileSync(this.saveFile, JSON.stringify(saveObject));
+        }
+    }
+
+    readConfig() {
+        let settingFile = 'settings.json';
+        if(fs.existsSync(settingFile)) {
+            let fileData = fs.statSync(settingFile);
+            if(fileData.mtime.getTime() !== this.configModDate) {
+                console.log('Config file has been updated!');
+                this.configModDate = fileData.mtime.getTime();
+                this.config = JSON.parse(fs.readFileSync(settingFile));
+                this.configUpdate = true;
+            }
         }
     }
 }
