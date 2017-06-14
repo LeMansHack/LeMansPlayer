@@ -22,9 +22,6 @@ class Player {
         this.maxTracks = 0; //Max numbers of tracks registered
         this.tracksToStartFrom = [ ]; //List of track ID´s of tracks to start from
 
-        this.endingMusicTrack = 98;
-        this.stopMusicTrack = 106;
-
         //Application data
         this.mainInterval = null; //Main loop
         this.currentData = null; //Object containing current loaded data
@@ -149,7 +146,7 @@ class Player {
         if(this.getPlayData('flag') === 4 && !this.getPlayData('lastTrack')) {
             console.log('Playing last track!');
             this.setPlayData('lastTrack', true);
-            this.setPlayData('musicLab', this.endingMusicTrack - 1);
+            this.setPlayData('musicLab', this.config.endingMusicTrack - 1);
         }
 
         if(this.firstTime && this.getPlayData('musicLab')) {
