@@ -2,5 +2,8 @@
   "bpmDivider": 1470,
   "trackOverflow": false,
   "endingMusicTrack": 98,
-  "stopMusicTrack": 106
+  "stopMusicTrack": 106,
+  "snareMaxValue": 85,
+  "kickMaxValue": 63,
+  "kickWindSpeedDivider": 20
 }

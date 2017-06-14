@@ -106,6 +106,10 @@ class Player {
      */
     parseAbletonData() {
         console.log('Parsing ableton data...');
+        //abletonApi.getParametersForDevice(3, 0).then((data) => {
+        //   console.log('paramereter data', data);
+        //});
+
         return abletonApi.getScenes().then((scenes) => {
             console.log('Ableton data parsed!');
             this.scenes = scenes.filter((scene) => {
@@ -136,6 +140,7 @@ class Player {
         }, 1000);
 
         console.log('I´VE RECIVE MIDI!!!');
+        this.setDrums();
         this.setCurrentPlayingTrack(); //Sets current playing track
     }
 
@@ -188,7 +193,11 @@ class Player {
      */
     render() {
         this.readConfig();
+        if(this.configUpdate) {
+            this.onMidiNote();
+        }
         this.readCars();
+        this.readTrackData();
         this.readFlagStatus();
         this.setTrackBpm();
         this.updateFile();
@@ -210,6 +219,24 @@ class Player {
                     abletonApi.setTempo(this.x.toFixed(2));
                 })
                 .start();
+        }
+    }
+
+    setDrums() {
+        if(this.checkPlayDataChange('windDirection', 'setDrumsWind') || this.configUpdate) {
+            let raw = this.getPlayData('windDirection');
+            let percent = raw/360;
+            let knop = Math.round(this.config.snareMaxValue*percent);
+            console.log('Setting snare to', {raw, percent, knop});
+            abletonApi.setParameterForDevice(3, 0, 1, knop);
+        }
+
+        if(this.checkPlayDataChange('windSpeed', 'setDrumsWindSpeed') || this.configUpdate) {
+            let raw = this.getPlayData('windSpeed');
+            let percent = this.getPlayData('windSpeed')/this.config.kickWindSpeedDivider;
+            let knop = Math.round(this.config.kickMaxValue*percent);
+            console.log('Setting kick to', {raw, percent, knop});
+            abletonApi.setParameterForDevice(1, 0, 1, knop);
         }
     }
 
@@ -240,6 +267,16 @@ class Player {
                     break;
             }
         }
+    }
+
+    readTrackData() {
+        let weather = this.currentData.track.weather;
+        this.setPlayData('windDirection', weather.windDirection);
+        this.setPlayData('windSpeed', weather.windSpeed);
+        this.setPlayData('airTemp', weather.airTemp);
+        this.setPlayData('roadTemp', weather.roadTemp);
+        this.setPlayData('airPreassure', weather.airPreassure);
+        this.setPlayData('airPreassure', weather.airPreassure);
     }
 
     /**
