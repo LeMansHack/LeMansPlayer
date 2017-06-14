@@ -30,11 +30,11 @@ class Player {
         this.currentData = null; //Object containing current loaded data
         this.oldCarData = { }; //Object containing data of car positions in last update
         this.firstTime = true; //Tells if we area rendering the first loop
-        this.chkValues = { }; //Object containing data on checked values
 
 
         //File data
         this.saveFile = './playdata2.json'; //File to save playdata to
+        this.chkValues = { }; //Object containing data on checked values
         this.playData = { //Object containing current loaded playdata
 
         };
@@ -58,9 +58,8 @@ class Player {
             if(fs.existsSync(this.saveFile)) {
                 console.log('Playing from ' + this.saveFile);
                 let fileData = JSON.parse(fs.readFileSync(this.saveFile));
-                for(let fi in fileData) {
-                    this.playData[fi] = fileData[fi];
-                }
+                this.playData = fileData.playData;
+                this.chkValues = fileData.chkValues;
             }
 
             if(this.live === true) {
@@ -78,10 +77,11 @@ class Player {
                 }, 1000);
             } else {
                 let data = null;
+                let currentSec =  0;
                 setInterval(() => {
-                    let currentSec = (this.getPlayData('currentSec')) ? this.getPlayData('currentSec') : 0;
                     data = this.dataExplorer.getData(currentSec);
                     this.setPlayData('currentSec', currentSec + 1);
+                    currentSec += 1;
                 }, 1);
 
                 this.mainInterval = setInterval(() => {
@@ -184,6 +184,7 @@ class Player {
     render() {
         this.readCars();
         this.readFlagStatus();
+        this.updateFile();
     }
 
     /**
@@ -328,6 +329,19 @@ class Player {
             });
             this.chkValues[checkId] = currentValue;
             return true;
+        }
+    }
+
+    /**
+     * Saves current play status data to file
+     */
+    updateFile() {
+        if(!this.spooling) {
+            let saveObject = {
+              playData: this.playData,
+              chkValues: this.chkValues
+            };
+            fs.writeFileSync(this.saveFile, JSON.stringify(saveObject));
         }
     }
 }
