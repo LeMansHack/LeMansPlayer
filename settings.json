@@ -1,5 +1,6 @@
 {
-  "bpmDivider": 1470,
+  "bpmDivider": 1630,
+  "bpmMinMax": [120, 130],
   "trackOverflow": false,
   "endingMusicTrack": 98,
   "stopMusicTrack": 106,

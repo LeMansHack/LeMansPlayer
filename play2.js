@@ -30,6 +30,7 @@ class Player {
         this.oldCarData = { }; //Object containing data of car positions in last update
         this.firstTime = true; //Tells if we area rendering the first loop
         this.runningFilterChange = false;
+        this.lastTrackTimes = -1;
 
 
         //File data
@@ -172,8 +173,22 @@ class Player {
             abletonApi.playScene(this.getPlayData('musicLab'));
         }
 
-        if(this.checkPlayDataChange('currentLab', 'musicLabChk')) {
+        if(this.checkPlayDataChange('currentLab', 'musicLabChk') && !this.getPlayData('lastTrack')) {
             abletonApi.playScene(this.nextTrack());
+        } else if(this.getPlayData('lastTrack')) {
+            this.autoPlay();
+        }
+    }
+
+    /**
+     * Automatic playback
+     */
+    autoPlay() {
+        if(this.lastTrackTimes >= Math.floor(Math.random() * 6) + 1 || this.lastTrackTimes < 0) {
+            this.lastTrackTimes = 0;
+            abletonApi.playScene(this.nextTrack());
+        } else if(this.lastTrackTimes < 6) {
+            this.lastTrackTimes += 1;
         }
     }
 
@@ -198,6 +213,10 @@ class Player {
         }
 
         console.log('Playing track', nextTrack);
+        if(this.getPlayData('lastTrack') && nextTrack > this.config.stopMusicTrack) {
+            return currentTrack;
+        }
+
         this.setPlayData('musicLab', nextTrack);
         return nextTrack;
     }
@@ -227,14 +246,16 @@ class Player {
             let newVal = Math.round(this.getPlayData('firstCarLabTime') / speedDivider);
             let currentVal = (this.configUpdate) ? newVal : Math.round(oldVal/speedDivider);
 
-            console.log('Changing BPM', {from: currentVal, to: newVal});
-            new TWEEN.Tween({x: currentVal})
-                .to({x: newVal}, 5000)
-                .onUpdate(function() {
-                    console.log('Changing bpm', this.x.toFixed(2));
-                    abletonApi.setTempo(this.x.toFixed(2));
-                })
-                .start();
+            if(newVal >= this.config.bpmMinMax[0] && newVal <= this.config.bpmMinMax[1]) {
+                console.log('Changing BPM', {from: currentVal, to: newVal});
+                new TWEEN.Tween({x: currentVal})
+                    .to({x: newVal}, 5000)
+                    .onUpdate(function() {
+                        console.log('Changing bpm', this.x.toFixed(2));
+                        abletonApi.setTempo(this.x.toFixed(2));
+                    })
+                    .start();
+            }
         }
     }
 
@@ -270,7 +291,7 @@ class Player {
             if(!this.runningFilterChange) {
                 this.runningFilterChange = true;
                 new TWEEN.Tween({x: oldKnop})
-                    .to({x: knop}, 5000)
+                    .to({x: knop}, 30000)
                     .onUpdate(function() {
                         console.log('Changing master filter', this.x.toFixed(2));
                         abletonApi.setParameterForDevice('master_track', 0, 5, this.x.toFixed(2));
