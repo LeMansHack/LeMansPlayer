@@ -21,6 +21,8 @@ class Player {
         this.scenes = [ ]; //Contains all Ableton Scenes
         this.maxTracks = 0; //Max numbers of tracks registered
         this.tracksToStartFrom = [ ]; //List of track ID´s of tracks to start from
+        this.speaks = [ ]; //List speak tracks
+        this.speakTrack = 17;
 
         //Application data
         this.mainInterval = null; //Main loop
@@ -41,7 +43,7 @@ class Player {
         this.midiWorking = false; //Check if MIDI is currently in use
 
         //Enviroment data
-        this.live = false; //Set to true if track is running live
+        this.live = true; //Set to true if track is running live
         this.config = {};
         this.configModDate = null;
         this.configUpdate = false;
@@ -111,23 +113,34 @@ class Player {
         //   console.log('paramereter data', data);
         //});
 
-        return abletonApi.getScenes().then((scenes) => {
-            console.log('Ableton data parsed!');
-            this.scenes = scenes.filter((scene) => {
-                return (scene.name.match(/^[0-9][0-9]/gi));
-            });
+        return Promise.all([
+            abletonApi.getScenes().then((scenes) => {
+                console.log('Ableton data parsed!');
+                this.scenes = scenes.filter((scene) => {
+                    return (scene.name.match(/^[0-9][0-9]/gi));
+                });
 
-            this.maxTracks = this.scenes.length;
+                this.maxTracks = this.scenes.length;
 
-            let lastName = null;
-            this.tracksToStartFrom = this.scenes.filter((track) => {
-                let check = (track.name != lastName);
-                lastName = track.name;
-                return check;
-            }).map((track) => {
-                return track.id
-            });
-        });
+                let lastName = null;
+                this.tracksToStartFrom = this.scenes.filter((track) => {
+                    let check = (track.name != lastName);
+                    lastName = track.name;
+                    return check;
+                }).map((track) => {
+                    return track.id
+                });
+            }),
+            abletonApi.getClipsForTrack(this.speakTrack).then((list) => {
+                for(let i in list) {
+                    let clip = list[i];
+                    this.speaks.push({
+                       id: clip.id,
+                       name: clip.clip.name
+                    });
+                }
+            })
+        ]);
     }
 
     onMidiNote() {
@@ -283,6 +296,7 @@ class Player {
                     console.log('Track off car on track!');
                     break;
                 case 2:
+                    this.playSpeak('green-flag');
                     console.log('Green flag');
                     break;
                 case 3:
@@ -292,12 +306,28 @@ class Player {
                     console.log('Chk flag');
                     break;
                 case 5:
+                    this.playSpeak('yellow-flag');
                     console.log('Yellow flag!');
                     break;
                 case 6:
+                    this.playSpeak('yellow-flag');
                     console.log('Full Yellow flag!');
                     break;
             }
+        }
+    }
+
+    /**
+     * Plays a speak by name
+     * @param name
+     */
+    playSpeak(name) {
+        let speakObj = this.speaks.filter((speakItem) => {
+            return (speakItem.name === name)
+        });
+
+        if(speakObj[0]) {
+            abletonApi.playClip(this.speakTrack, speakObj[0].id);
         }
     }
 
