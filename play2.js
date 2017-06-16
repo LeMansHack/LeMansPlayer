@@ -249,16 +249,21 @@ class Player {
             let newVal = Math.round(this.getPlayData('firstCarLabTime') / speedDivider);
             let currentVal = (this.configUpdate) ? newVal : Math.round(oldVal/speedDivider);
 
-            if(newVal >= this.config.bpmMinMax[0] && newVal <= this.config.bpmMinMax[1]) {
-                console.log('Changing BPM', {from: currentVal, to: newVal});
-                new TWEEN.Tween({x: currentVal})
-                    .to({x: newVal}, 5000)
-                    .onUpdate(function() {
-                        console.log('Changing bpm', this.x.toFixed(2));
-                        abletonApi.setTempo(this.x.toFixed(2));
-                    })
-                    .start();
+            if(newVal < this.config.bpmMinMax[0]) {
+                newVal = this.config.bpmMinMax[0];
+            } else if(newVal > this.config.bpmMinMax[1]) {
+                newVal = this.config.bpmMinMax[1];
             }
+
+            console.log('Changing BPM', {from: currentVal, to: newVal});
+            new TWEEN.Tween({x: currentVal})
+                .to({x: newVal}, 5000)
+                .onUpdate(function() {
+                    console.log('Changing bpm', this.x.toFixed(2));
+                    abletonApi.setTempo(this.x.toFixed(2));
+                })
+                .start();
+
         }
     }
 
