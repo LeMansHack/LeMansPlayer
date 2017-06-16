@@ -1,4 +1,5 @@
 {
+  "autoPlay": false,
   "bpmDivider": 1630,
   "bpmMinMax": [120, 130],
   "trackOverflow": false,

@@ -173,9 +173,12 @@ class Player {
             abletonApi.playScene(this.getPlayData('musicLab'));
         }
 
-        if(this.checkPlayDataChange('currentLab', 'musicLabChk') && !this.getPlayData('lastTrack')) {
-            abletonApi.playScene(this.nextTrack());
-        } else if(this.getPlayData('lastTrack')) {
+        if(!this.getPlayData('lastTrack') && !this.getPlayData('safetyCar') && !this.config.autoPlay) {
+            if(this.checkPlayDataChange('currentLab', 'musicLabChk')) {
+                abletonApi.playScene(this.nextTrack());
+            }
+        } else {
+            console.log('--- AUTOPLAY MODE ---');
             this.autoPlay();
         }
     }
@@ -359,6 +362,7 @@ class Player {
         this.setPlayData('airTemp', weather.airTemp);
         this.setPlayData('roadTemp', weather.roadTemp);
         this.setPlayData('airPreassure', weather.airPreassure);
+        this.setPlayData('safetyCar', this.currentData.track.safetyCar);
     }
 
     /**
