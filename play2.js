@@ -247,7 +247,7 @@ class Player {
     }
 
     playSpeaks() {
-        if(this.checkPlayDataChange('safetyCar') && this.getPlayData('safetyCar')) {
+        if(this.checkPlayDataChange('safetyCar', 'safetyCarPlaySpeak') && this.getPlayData('safetyCar')) {
             console.log('Safety Car');
             this.playSpeak('Safety-car');
         }
