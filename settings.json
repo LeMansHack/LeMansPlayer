@@ -1,7 +1,7 @@
 {
   "autoPlay": false,
-  "bpmDivider": 1630,
-  "bpmMinMax": [120, 130],
+  "bpmDivider": 1680,
+  "bpmMinMax": [115, 126],
   "trackOverflow": false,
   "endingMusicTrack": 98,
   "stopMusicTrack": 106,
