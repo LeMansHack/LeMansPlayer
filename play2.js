@@ -241,8 +241,16 @@ class Player {
 
         this.setTrackBpm();
         this.setMasterFilter();
+        this.playSpeaks();
         this.updateFile();
         this.configUpdate = false;
+    }
+
+    playSpeaks() {
+        if(this.getPlayData('safetyCar')) {
+            console.log('Safety Car');
+            this.playSpeak('Safety-car');
+        }
     }
 
     setTrackBpm() {
@@ -404,8 +412,8 @@ class Player {
             averageSpeed += cars[i].averageSpeed;
 
             if(cars[i].driverStatus == 4) {
-                if(parseInt(cars[i].number) <= 13) {
-                    this.setPlayData('pitDriver', cars[i].number);
+                if(parseInt(cars[i].number) <= 13 && cars[i].category === 'LMP1') {
+                    this.setPlayData('pitDriver', cars[i]);
                 }
                 pits += 1;
             }
