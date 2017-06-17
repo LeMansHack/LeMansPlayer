@@ -69,7 +69,7 @@ class Player {
             if(this.live === true) {
                 let client = new Client();
                 this.mainInterval = setInterval(() => {
-                    client.get('http://192.168.1.36:3000', (data) => {
+                    client.get('http://192.168.1.34:3000', (data) => {
                         this.currentData = data;
                         this.render();
 
