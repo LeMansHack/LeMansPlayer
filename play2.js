@@ -298,14 +298,24 @@ class Player {
             console.log('Changing filter using driverchanges', {driverchanges, percent, knop});
             if(!this.runningFilterChange) {
                 this.runningFilterChange = true;
+                let t1 = Math.floor(Math.random() * 30000) + 10000;
+                let t2 = Math.floor(Math.random() * 30000) + 10000;
+
                 new TWEEN.Tween({x: oldKnop})
-                    .to({x: knop}, 30000)
+                    .to({x: knop}, t1)
                     .onUpdate(function() {
                         console.log('Changing master filter', this.x.toFixed(2));
                         abletonApi.setParameterForDevice('master_track', 0, 5, this.x.toFixed(2));
                     })
                     .onComplete(() => {
-                        this.runningFilterChange = false;
+                        new TWEEN.Tween({x: knop})
+                            .to({x: 0}, t2)
+                            .onUpdate(function() {
+                                console.log('Changing master filter', this.x.toFixed(2));
+                                abletonApi.setParameterForDevice('master_track', 0, 5, this.x.toFixed(2));
+                            }).onComplete(() => {
+                                this.runningFilterChange = false;
+                            }).start();
                     })
                     .start();
             } else {
