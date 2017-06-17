@@ -1,5 +1,6 @@
 {
   "autoPlay": false,
+  "currentLabDecimals": 2,
   "bpmDivider": 1680,
   "bpmMinMax": [115, 126],
   "trackOverflow": false,

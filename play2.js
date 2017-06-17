@@ -439,7 +439,7 @@ class Player {
         this.setPlayData('numberOfPlaceChanges', Math.round(127 * (numberOfCarChanges*10/numberOfCars)) + 1);
         this.setPlayData('numberOfDriverChanges', Math.round(127 * (numberOfDriverChanges*10/numberOfCars)) + 1);
         this.setPlayData('numberOfWetTires', Math.round(127 * (numberOfWetTires*3/numberOfCars)) + 1);
-        this.setPlayData('currentLab', Math.abs(accLabs/numberOfCars).toFixed(1));
+        this.setPlayData('currentLab', Math.abs(accLabs/numberOfCars).toFixed(this.config.currentLabDecimals));
 
         if(averageSpeed <= 0) {
             averageSpeed = 200;
