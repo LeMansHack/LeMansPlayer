@@ -288,6 +288,12 @@ class Player {
             let newVal = Math.round(this.getPlayData('firstCarLabTime') / speedDivider);
             let currentVal = (this.configUpdate) ? newVal : Math.round(oldVal/speedDivider);
 
+            if(currentVal < this.config.bpmMinMax[0]) {
+                currentVal = this.config.bpmMinMax[0];
+            } else if(currentVal > this.config.bpmMinMax[0]) {
+                currentVal = this.config.bpmMinMax[0];
+            }
+
             if(newVal < this.config.bpmMinMax[0]) {
                 newVal = this.config.bpmMinMax[0];
             } else if(newVal > this.config.bpmMinMax[1]) {
