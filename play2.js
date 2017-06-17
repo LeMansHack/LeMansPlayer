@@ -31,6 +31,7 @@ class Player {
         this.firstTime = true; //Tells if we area rendering the first loop
         this.runningFilterChange = false;
         this.lastTrackTimes = -1;
+        this.autotimes = Math.floor(Math.random() * 6) + 1;
 
 
         //File data
@@ -187,10 +188,11 @@ class Player {
      * Automatic playback
      */
     autoPlay() {
-        if(this.lastTrackTimes >= Math.floor(Math.random() * 6) + 1 || this.lastTrackTimes < 0) {
+        console.log('Autotimes', {'autotime': this.autotimes, 'lastTrackTime': this.lastTrackTimes});
+        if(this.lastTrackTimes >= this.autotimes || this.lastTrackTimes < 0) {
             this.lastTrackTimes = 0;
             abletonApi.playScene(this.nextTrack());
-        } else if(this.lastTrackTimes < 6) {
+        } else {
             this.lastTrackTimes += 1;
         }
     }
@@ -221,6 +223,7 @@ class Player {
         }
 
         this.setPlayData('musicLab', nextTrack);
+        this.autotimes = Math.floor(Math.random() * this.config.autoTimes) + 1;
         return nextTrack;
     }
 

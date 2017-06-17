@@ -1,5 +1,6 @@
 {
   "autoPlay": false,
+  "autoTimes": 2,
   "currentLabDecimals": 2,
   "bpmDivider": 1680,
   "bpmMinMax": [115, 126],
@@ -9,6 +10,6 @@
   "snareMaxValue": 85,
   "kickMaxValue": 63,
   "kickWindSpeedDivider": 20,
-  "filterDriverChangeivision": 30,
+  "filterDriverChangeivision": 150,
   "masterFilterMaxVal": 80
 }
