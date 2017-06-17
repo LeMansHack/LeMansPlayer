@@ -374,12 +374,13 @@ class Player {
     }
 
     readTrackData() {
-        let weather = this.currentData.track.weather;
-        this.setPlayData('windDirection', weather.windDirection);
-        this.setPlayData('windSpeed', weather.windSpeed);
-        this.setPlayData('airTemp', weather.airTemp);
-        this.setPlayData('roadTemp', weather.roadTemp);
-        this.setPlayData('airPreassure', weather.airPreassure);
+        let weather = this.currentData.wheather.query.results.channel;
+        let track = this.currentData.track;
+        this.setPlayData('windDirection', weather.wind.direction);
+        this.setPlayData('windSpeed', weather.wind.speed);
+        this.setPlayData('airTemp', weather.item.condition.temp);
+        this.setPlayData('roadTemp', track.weather.roadTemp);
+        this.setPlayData('airPreassure', weather.atmosphere.humidity);
         this.setPlayData('safetyCar', this.currentData.track.safetyCar);
     }
 
