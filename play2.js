@@ -173,7 +173,7 @@ class Player {
             abletonApi.playScene(this.getPlayData('musicLab'));
         }
 
-        if(!this.getPlayData('lastTrack') && !this.getPlayData('safetyCar') && !this.config.autoPlay) {
+        if(!this.getPlayData('lastTrack') && !this.getPlayData('safetyCar')) {
             if(this.checkPlayDataChange('currentLab', 'musicLabChk')) {
                 abletonApi.playScene(this.nextTrack());
             }
