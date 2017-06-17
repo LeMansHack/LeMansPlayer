@@ -251,6 +251,34 @@ class Player {
             console.log('Safety Car');
             this.playSpeak('Safety-car');
         }
+
+        if(this.checkPlayDataChange('pitDriver', 'pitDriverPlaySpeaks')) {
+            let pitDriver = this.getPlayData('pitDriver');
+            let sound = this.getSoundNameByCar(pitDriver);
+            if(sound) {
+                this.playSpeak(sound);
+                setTimeout(() => {
+                    this.playSpeak('in-pit');
+                }, 1000);
+            }
+        }
+    }
+
+    getSoundNameByCar(car) {
+        switch (car.number) {
+            case 1:
+                return 'Porsche-1';
+            case 2:
+                return 'Porsche-2';
+            case 7:
+                return 'Toyota-7';
+            case 8:
+                return 'Toyota-8';
+            case 9:
+                return 'Toyota-9';
+            default:
+                return null;
+        }
     }
 
     setTrackBpm() {
