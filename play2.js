@@ -1,6 +1,6 @@
 let midi = require('midi');
 let data = require('lemandataexplorer');
-let Client = require('node-rest-client').Client;
+let axios = require('axios');
 let myArgs = process.argv.slice(2);
 let fs = require('graceful-fs');
 let abletonApi = require('abletonapi');
@@ -68,17 +68,18 @@ class Player {
             }
 
             if(this.live === true) {
-                let client = new Client();
                 this.mainInterval = setInterval(() => {
-                    client.get('http://192.168.1.34:3000', (data) => {
-                        this.currentData = data;
+                    axios.get('http://192.168.1.34:3000').then((resp) => {
+                        this.currentData = resp.data;
                         this.render();
 
                         if(this.firstTime) {
                             this.onMidiNote();
                             this.firstTime = false;
                         }
-                    });
+                    }).catch(() => {
+                        console.log('No data - trying again');
+                    })
                 }, 1000);
             } else {
                 let data = null;
@@ -252,7 +253,7 @@ class Player {
             this.playSpeak('Safety-car');
         }
 
-        if(this.checkPlayDataChange('pitDriver', 'pitDriverPlaySpeaks')) {
+/*        if(this.checkPlayDataChange('pitDriver', 'pitDriverPlaySpeaks')) {
             let pitDriver = this.getPlayData('pitDriver');
             let sound = this.getSoundNameByCar(pitDriver);
             if(sound) {
@@ -261,7 +262,7 @@ class Player {
                     this.playSpeak('in-pit');
                 }, 1000);
             }
-        }
+        }*/
     }
 
     getSoundNameByCar(car) {
@@ -416,13 +417,12 @@ class Player {
     }
 
     readTrackData() {
-        let weather = this.currentData.wheather.query.results.channel;
-        let track = this.currentData.track;
-        this.setPlayData('windDirection', weather.wind.direction);
-        this.setPlayData('windSpeed', weather.wind.speed);
-        this.setPlayData('airTemp', weather.item.condition.temp);
-        this.setPlayData('roadTemp', track.weather.roadTemp);
-        this.setPlayData('airPreassure', weather.atmosphere.humidity);
+        let weather = this.currentData.track.weather;
+        this.setPlayData('windDirection', weather.windDirection);
+        this.setPlayData('windSpeed', weather.windSpeed);
+        this.setPlayData('airTemp', weather.airTemp);
+        this.setPlayData('roadTemp', weather.roadTemp);
+        this.setPlayData('airPreassure', weather.airPreassure);
         this.setPlayData('safetyCar', this.currentData.track.safetyCar);
     }
 
@@ -447,7 +447,7 @@ class Player {
 
             if(cars[i].driverStatus == 4) {
                 if(parseInt(cars[i].number) <= 13 && cars[i].category === 'LMP1') {
-                    this.setPlayData('pitDriver', cars[i]);
+                    //this.setPlayData('pitDriver', cars[i]);
                 }
                 pits += 1;
             }

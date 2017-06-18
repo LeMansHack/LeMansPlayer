@@ -5,6 +5,7 @@
   "main": "play.js",
   "dependencies": {
     "abletonapi": "https://github.com/LeMansHack/AbletonAPI.git",
+    "axios": "^0.16.2",
     "graceful-fs": "^4.1.4",
     "lemandataexplorer": "https://github.com/LeMansHack/DataExplorer.git",
     "midi": "^0.9.4",
