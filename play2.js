@@ -298,8 +298,10 @@ class Player {
         if(this.checkPlayDataChange('pitDriver', 'pitDriverPlaySpeaks') && !this.firstTime) {
             let pitDriver = this.getPlayData('pitDriver');
             pitDriver = this.currentData.cars[pitDriver];
+            console.log('Pit driver selected', pitDriver);
             let sound = this.getSoundNameByCar(pitDriver);
             if(sound) {
+                console.log('Playing sound - for pit', sound);
                 this.playSpeak(sound);
                 setTimeout(() => {
                     this.playSpeak('in-pit');
@@ -312,8 +314,10 @@ class Player {
                 return (car.category === 'LMP2');
             })[0];
 
+            console.log('New lead position', firstPlace);
             let sound = this.getSoundNameByCar(firstPlace);
             if(sound) {
+                console.log('Driver takes the lead', sound);
                 this.playSpeak(sound);
                 setTimeout(() => {
                     this.playSpeak('takes-the-lead');
