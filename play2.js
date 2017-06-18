@@ -31,6 +31,7 @@ class Player {
         this.firstTime = true; //Tells if we area rendering the first loop
         this.runningFilterChange = false;
         this.runningPitFilterChange = false;
+        this.runningOldPitFilterChange = false;
         this.lastTrackTimes = -1;
         this.autotimes = Math.floor(Math.random() * 6) + 1;
 
@@ -260,12 +261,27 @@ class Player {
                 new TWEEN.Tween({x:oldPitStatus}).to({x: pitters}).onUpdate(function() {
                     console.log('Changing pitters', this.x);
                     abletonApi.setParameterForDevice(8, 3, 1, this.x.toFixed(2));
-                    abletonApi.setParameterForDevice(9, 2, 1, this.x.toFixed(2));
                     abletonApi.setParameterForDevice(11, 0, 1, this.x.toFixed(2));
-                    abletonApi.setParameterForDevice(12, 0, 1, this.x.toFixed(2));
                     abletonApi.setParameterForDevice(13, 0, 1, this.x.toFixed(2));
                 }).onComplete(() => {
                     this.runningFilterChange = false;
+                }).start();
+            }
+        }
+
+        let oldPitOutStatus = this.checkPlayDataChange('pitOut', 'pitOutStatusFilter');
+        if(oldPitOutStatus !== false) {
+            if(!this.runningOldPitFilterChange) {
+                this.runningOldPitFilterChange = true;
+                let pitOuts = Math.round(this.getPlayData('pitOut') * 20);
+                oldPitOutStatus = Math.round(oldPitOutStatus * 20);
+
+                new TWEEN.Tween({x:oldPitOutStatus}).to({x: pitOuts}).onUpdate(function() {
+                    console.log('Changing PitOut', this.x);
+                    abletonApi.setParameterForDevice(9, 2, 1, this.x.toFixed(2));
+                    abletonApi.setParameterForDevice(12, 0, 1, this.x.toFixed(2));
+                }).onComplete(() => {
+                    this.runningOldPitFilterChange = false;
                 }).start();
             }
         }
@@ -530,7 +546,7 @@ class Player {
 
         this.setPlayData('running', Math.round(127 * (running/numberOfCars)) + 1);
         this.setPlayData('pitStatus', pits);
-        this.setPlayData('pitOut', Math.round(127 * (pitOut*(numberOfCars/2)/numberOfCars)) + 1);
+        this.setPlayData('pitOut', pitOut);
         this.setPlayData('numberOfPlaceChanges', Math.round(127 * (numberOfCarChanges*10/numberOfCars)) + 1);
         this.setPlayData('numberOfDriverChanges', Math.round(127 * (numberOfDriverChanges*10/numberOfCars)) + 1);
         this.setPlayData('numberOfWetTires', Math.round(127 * (numberOfWetTires*3/numberOfCars)) + 1);
