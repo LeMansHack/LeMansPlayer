@@ -302,7 +302,7 @@ class Player {
                 this.playSpeak(sound);
                 setTimeout(() => {
                     this.playSpeak('in-pit');
-                }, 1500);
+                }, 5000);
             }
         }
 
@@ -316,7 +316,7 @@ class Player {
                 this.playSpeak(sound);
                 setTimeout(() => {
                     this.playSpeak('takes-the-lead');
-                }, 1500);
+                }, 5000);
             }
         }
 
@@ -359,7 +359,7 @@ class Player {
 
             console.log('Changing BPM', {from: currentVal, to: newVal});
             new TWEEN.Tween({x: currentVal})
-                .to({x: newVal}, 5000)
+                .to({x: newVal}, 30000)
                 .onUpdate(function() {
                     console.log('Changing bpm', this.x.toFixed(2));
                     abletonApi.setTempo(this.x.toFixed(2));
