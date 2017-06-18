@@ -297,6 +297,19 @@ class Player {
                 }, 1500);
             }
         }
+
+        if(this.checkPlayDataChange('firstDriverChange', 'playDroverChangeSpeakChk')) {
+            let driverName = this.getPlayData('firstDriverChange');
+            driverName = driverName.split(' ')[0].toLowerCase();
+            let nameTracks = ['Porsche-1-andre-lotterer-driving', 'Porsche-1-neel-jani-driving', 'Porsche-1-nick-tandy-driving'];
+            let track = nameTracks.filter((item) => {
+               return (item.indexOf(driverName));
+            });
+
+            if(track[0]) {
+                this.playSpeak(track[0]);
+            }
+        }
     }
 
     getSoundNameByCar(car) {
@@ -520,6 +533,7 @@ class Player {
         this.setPlayData('numberOfDriverChanges', Math.round(127 * (numberOfDriverChanges*10/numberOfCars)) + 1);
         this.setPlayData('numberOfWetTires', Math.round(127 * (numberOfWetTires*3/numberOfCars)) + 1);
         this.setPlayData('currentLab', Math.abs(accLabs/numberOfCars).toFixed(this.config.currentLabDecimals));
+        this.setPlayData('firstDriverChange', cars[0].pilot.firstName);
 
         if(averageSpeed <= 0) {
             averageSpeed = 200;
