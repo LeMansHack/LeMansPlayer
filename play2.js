@@ -146,6 +146,7 @@ class Player {
                        name: clip.clip.name
                     });
                 }
+                console.log('Speaker clips', this.speaks);
             })
         ]);
     }
