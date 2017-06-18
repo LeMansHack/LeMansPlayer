@@ -264,6 +264,17 @@ class Player {
                 }, 1500);
             }
         }
+
+        if(this.checkPlayDataChange('firstPlace', 'firstPlacePlaySpeaks') && !this.firstTime) {
+            let firstPlace = this.currentData.cars[0];
+            let sound = this.getSoundNameByCar(firstPlace);
+            if(sound) {
+                this.playSpeak(sound);
+                setTimeout(() => {
+                    this.playSpeak('takes-the-lead');
+                }, 1500);
+            }
+        }
     }
 
     getSoundNameByCar(car) {
@@ -496,6 +507,7 @@ class Player {
 
         this.setPlayData('averageSpeed', averageSpeed);
         this.setPlayData('firstCarLabTime', cars[0].lastTimeInMiliseconds);
+        this.setPlayData('firstPlace', cars[0].number);
         this.oldCarData = cars;
     };
 
