@@ -307,7 +307,10 @@ class Player {
         }
 
         if(this.checkPlayDataChange('firstPlace', 'firstPlacePlaySpeaks') && !this.firstTime) {
-            let firstPlace = this.currentData.cars[0];
+            let firstPlace = this.currentData.cars.filter((car) => {
+                return (car.category === 'LMP2');
+            })[0];
+
             let sound = this.getSoundNameByCar(firstPlace);
             if(sound) {
                 this.playSpeak(sound);
