@@ -23,6 +23,7 @@ class Player {
         this.tracksToStartFrom = [ ]; //List of track ID´s of tracks to start from
         this.speaks = [ ]; //List speak tracks
         this.speakTrack = 17;
+        this.speakerCars = {1: 'Porsche-1', 13: 'no13', 24: 'no24', 31: 'no31', 35: 'no35', 38: 'no38'};
 
         //Application data
         this.mainInterval = null; //Main loop
@@ -331,20 +332,7 @@ class Player {
     }
 
     getSoundNameByCar(car) {
-        switch (car.number) {
-            case 1:
-                return 'Porsche-1';
-            case 2:
-                return 'Porsche-2';
-            case 7:
-                return 'Toyota-7';
-            case 8:
-                return 'Toyota-8';
-            case 9:
-                return 'Toyota-9';
-            default:
-                return null;
-        }
+        return this.speakerCars[car.number];
     }
 
     setTrackBpm() {
@@ -511,7 +499,7 @@ class Player {
             averageSpeed += cars[i].averageSpeed;
 
             if(cars[i].driverStatus == 4) {
-                if(parseInt(cars[i].number) <= 13 && cars[i].category === 'LMP1') {
+                if(this.speakerCars[cars[i].number]) {
                     this.setPlayData('pitDriver', i);
                 }
                 pits += 1;
@@ -535,7 +523,7 @@ class Player {
                 }
 
                 if(cars[i].driver !== this.oldCarData[i].driver) {
-                    if(parseInt(cars[i].number) <= 13) {
+                    if(this.speakerCars[cars[i].number]) {
                         this.setPlayData('driverChange', cars[i].number);
                     }
                 }
@@ -561,7 +549,9 @@ class Player {
 
         this.setPlayData('averageSpeed', averageSpeed);
         this.setPlayData('firstCarLabTime', cars[0].lastTimeInMiliseconds);
-        this.setPlayData('firstPlace', cars[0].number);
+        this.setPlayData('firstPlace', cars.filter((car) => {
+            return (car.category === 'LMP2');
+        })[0].number);
         this.oldCarData = cars;
     };
 
