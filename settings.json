@@ -7,8 +7,8 @@
   "trackOverflow": true,
   "endingMusicTrack": 98,
   "stopMusicTrack": 106,
-  "snareMaxValue": 85,
-  "kickMaxValue": 63,
+  "snareMaxValue": 100,
+  "kickMaxValue": 100,
   "kickWindSpeedDivider": 20,
   "filterDriverChangeivision": 40,
   "masterFilterMaxVal": 80
