@@ -253,16 +253,17 @@ class Player {
             this.playSpeak('Safety-car');
         }
 
-/*        if(this.checkPlayDataChange('pitDriver', 'pitDriverPlaySpeaks')) {
+        if(this.checkPlayDataChange('pitDriver', 'pitDriverPlaySpeaks') && !this.firstTime) {
             let pitDriver = this.getPlayData('pitDriver');
+            pitDriver = this.currentData.cars[pitDriver];
             let sound = this.getSoundNameByCar(pitDriver);
             if(sound) {
                 this.playSpeak(sound);
                 setTimeout(() => {
                     this.playSpeak('in-pit');
-                }, 1000);
+                }, 1500);
             }
-        }*/
+        }
     }
 
     getSoundNameByCar(car) {
@@ -447,7 +448,7 @@ class Player {
 
             if(cars[i].driverStatus == 4) {
                 if(parseInt(cars[i].number) <= 13 && cars[i].category === 'LMP1') {
-                    //this.setPlayData('pitDriver', cars[i]);
+                    this.setPlayData('pitDriver', i);
                 }
                 pits += 1;
             }
