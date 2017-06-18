@@ -23,7 +23,7 @@ class Player {
         this.tracksToStartFrom = [ ]; //List of track ID´s of tracks to start from
         this.speaks = [ ]; //List speak tracks
         this.speakTrack = 17;
-        this.speakerCars = {1: 'Porsche-1', 13: 'no13', 24: 'no24', 31: 'no31', 35: 'no35', 38: 'no38'};
+        this.speakerCars = {1: 'Porsche-1', 13: 'Car-13', 24: 'Car-24', 31: 'Car-31', 35: 'Car-35', 38: 'Car-38', 2: 'Porsche-2'};
 
         //Application data
         this.mainInterval = null; //Main loop
@@ -507,7 +507,7 @@ class Player {
             averageSpeed += cars[i].averageSpeed;
 
             if(cars[i].driverStatus == 4) {
-                if(this.speakerCars[cars[i].number]) {
+                if(typeof this.speakerCars[cars[i].number] !== 'undefined') {
                     this.setPlayData('pitDriver', i);
                 }
                 pits += 1;
