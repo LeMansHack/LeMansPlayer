@@ -214,7 +214,7 @@ class Player {
         if(this.getPlayData('maxTracksOverflow') && !this.getPlayData('lastTrack')) {
             for(let i in this.tracksToStartFrom) {
                 if((this.tracksToStartFrom[i] - 1) === currentTrack) {
-                    nextTrack = this.tracksToStartFrom[Math.floor(Math.random() * this.tracksToStartFrom.length)];
+                    nextTrack = this.tracksToStartFrom[Math.floor(Math.random() * (this.tracksToStartFrom.length - 1))];
                 }
             }
         }
