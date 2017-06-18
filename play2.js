@@ -254,15 +254,14 @@ class Player {
         if(oldPitStatus !== false) {
             if(!this.runningPitFilterChange) {
                 this.runningFilterChange = true;
-                let pitters = this.getPlayData('pitStatus') * 127;
-                oldPitStatus = oldPitStatus * 127;
+                let pitters = Math.round(this.getPlayData('pitStatus') * 20);
+                oldPitStatus = Math.round(oldPitStatus * 20);
 
                 new TWEEN.Tween({x:oldPitStatus}).to({x: pitters}).onUpdate(function() {
                     console.log('Changing pitters', this.x);
-                    abletonApi.setParameterForDevice(9, 2, 1, this.x);
-                    abletonApi.setParameterForDevice(8, 3, 1, this.x);
-                    abletonApi.setParameterForDevice(8, 3, 1, this.x);
-                    abletonApi.setParameterForDevice(13, 0, 1, this.x);
+                    abletonApi.setParameterForDevice(9, 2, 1, this.x.toFixed(2));
+                    abletonApi.setParameterForDevice(8, 3, 1, this.x.toFixed(2));
+                    abletonApi.setParameterForDevice(11, 0, 1, this.x.toFixed(2));
                 }).onComplete(() => {
                     this.runningFilterChange = false;
                 }).start();
@@ -515,7 +514,7 @@ class Player {
 
 
         this.setPlayData('running', Math.round(127 * (running/numberOfCars)) + 1);
-        this.setPlayData('pitStatus', Math.round(pits*2/numberOfCars));
+        this.setPlayData('pitStatus', pits);
         this.setPlayData('pitOut', Math.round(127 * (pitOut*(numberOfCars/2)/numberOfCars)) + 1);
         this.setPlayData('numberOfPlaceChanges', Math.round(127 * (numberOfCarChanges*10/numberOfCars)) + 1);
         this.setPlayData('numberOfDriverChanges', Math.round(127 * (numberOfDriverChanges*10/numberOfCars)) + 1);
