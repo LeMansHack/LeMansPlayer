@@ -5,6 +5,7 @@ let myArgs = process.argv.slice(2);
 let fs = require('graceful-fs');
 let abletonApi = require('abletonapi');
 let TWEEN = require('tween.js');
+let Moment = require('moment');
 
 class Player {
     constructor() {
@@ -81,8 +82,8 @@ class Player {
                             this.onMidiNote();
                             this.firstTime = false;
                         }
-                    }).catch(() => {
-                        console.log('No data - trying again');
+                    }).catch((err) => {
+                        console.log('No data - trying again',err);
                     })
                 }, 1000);
             } else {
@@ -338,6 +339,16 @@ class Player {
                 this.playSpeak(track[0]);
             }
         }
+
+        if(this.checkPlayDataChange('hourLeft', 'hourLeftSpeakCheck') && !this.firstTime) {
+            let hour = this.getPlayData('hourLeft');
+            this.playSpeak('hours-' + hour);
+        }
+
+        if(this.checkPlayDataChange('minutesLeft', 'minuteLeftSpeakCheck') && !this.firstTime) {
+            let min = this.getPlayData('minutesLeft');
+            this.playSpeak('min-' + min);
+        }
     }
 
     getSoundNameByCar(car) {
@@ -473,7 +484,7 @@ class Player {
             return (speakItem.name === name)
         });
 
-        if(speakObj[0]) {
+        if(typeof speakObj[0] !== 'undefined') {
             abletonApi.playClip(this.speakTrack, speakObj[0].id);
         }
     }
@@ -486,6 +497,10 @@ class Player {
         this.setPlayData('roadTemp', weather.roadTemp);
         this.setPlayData('airPreassure', weather.airPreassure);
         this.setPlayData('safetyCar', this.currentData.track.safetyCar);
+        this.setPlayData('hourLeft', Moment.unix(this.currentData.track.remainingTimeInSeconds).hours());
+        if(this.getPlayData('hourLeft') <= 0) {
+            this.setPlayData('minutesLeft', Moment.unix(this.currentData.track.remainingTimeInSeconds).minutes());
+        }
     }
 
     /**
