@@ -30,6 +30,7 @@ class Player {
         this.oldCarData = { }; //Object containing data of car positions in last update
         this.firstTime = true; //Tells if we area rendering the first loop
         this.runningFilterChange = false;
+        this.runningPitFilterChange = false;
         this.lastTrackTimes = -1;
         this.autotimes = Math.floor(Math.random() * 6) + 1;
 
@@ -242,9 +243,31 @@ class Player {
 
         this.setTrackBpm();
         this.setMasterFilter();
+        this.setFilters();
         this.playSpeaks();
         this.updateFile();
         this.configUpdate = false;
+    }
+
+    setFilters() {
+        let oldPitStatus = this.checkPlayDataChange('pitStatus', 'pitStatusFilters');
+        if(oldPitStatus !== false) {
+            if(!this.runningPitFilterChange) {
+                this.runningFilterChange = true;
+                let pitters = this.getPlayData('pitStatus') * 127;
+                oldPitStatus = oldPitStatus * 127;
+
+                new TWEEN.Tween({x:oldPitStatus}).to({x: pitters}).onUpdate(function() {
+                    console.log('Changing pitters', this.x);
+                    abletonApi.setParameterForDevice(9, 2, 1, this.x);
+                    abletonApi.setParameterForDevice(8, 3, 1, this.x);
+                    abletonApi.setParameterForDevice(8, 3, 1, this.x);
+                    abletonApi.setParameterForDevice(13, 0, 1, this.x);
+                }).onComplete(() => {
+                    this.runningFilterChange = false;
+                }).start();
+            }
+        }
     }
 
     playSpeaks() {
@@ -492,8 +515,8 @@ class Player {
 
 
         this.setPlayData('running', Math.round(127 * (running/numberOfCars)) + 1);
-        this.setPlayData('pitStatus', Math.round(127 * (pits*2/numberOfCars)) + 1);
-        this.setPlayData('pitOut', Math.round(127 * (pitOut*2/numberOfCars)) + 1);
+        this.setPlayData('pitStatus', Math.round(pits*2/numberOfCars));
+        this.setPlayData('pitOut', Math.round(127 * (pitOut*(numberOfCars/2)/numberOfCars)) + 1);
         this.setPlayData('numberOfPlaceChanges', Math.round(127 * (numberOfCarChanges*10/numberOfCars)) + 1);
         this.setPlayData('numberOfDriverChanges', Math.round(127 * (numberOfDriverChanges*10/numberOfCars)) + 1);
         this.setPlayData('numberOfWetTires', Math.round(127 * (numberOfWetTires*3/numberOfCars)) + 1);
