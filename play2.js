@@ -307,7 +307,7 @@ class Player {
                 this.playSpeak(sound);
                 setTimeout(() => {
                     this.playSpeak('in-pit');
-                }, 2500);
+                }, 4000);
             }
         }
 
@@ -323,7 +323,7 @@ class Player {
                 this.playSpeak(sound);
                 setTimeout(() => {
                     this.playSpeak('takes-the-lead');
-                }, 2500);
+                }, 4000);
             }
         }
 
