@@ -305,7 +305,7 @@ class Player {
             driverName = driverName.split(' ')[0].toLowerCase();
             let nameTracks = ['Porsche-1-andre-lotterer-driving', 'Porsche-1-neel-jani-driving', 'Porsche-1-nick-tandy-driving'];
             let track = nameTracks.filter((item) => {
-               return (item.indexOf(driverName));
+               return (item.indexOf(driverName) !== -1);
             });
 
             if(track[0]) {
