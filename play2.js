@@ -259,9 +259,11 @@ class Player {
 
                 new TWEEN.Tween({x:oldPitStatus}).to({x: pitters}).onUpdate(function() {
                     console.log('Changing pitters', this.x);
-                    abletonApi.setParameterForDevice(9, 2, 1, this.x.toFixed(2));
                     abletonApi.setParameterForDevice(8, 3, 1, this.x.toFixed(2));
+                    abletonApi.setParameterForDevice(9, 2, 1, this.x.toFixed(2));
                     abletonApi.setParameterForDevice(11, 0, 1, this.x.toFixed(2));
+                    abletonApi.setParameterForDevice(12, 0, 1, this.x.toFixed(2));
+                    abletonApi.setParameterForDevice(13, 0, 1, this.x.toFixed(2));
                 }).onComplete(() => {
                     this.runningFilterChange = false;
                 }).start();
