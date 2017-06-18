@@ -33,6 +33,7 @@ class Player {
         this.runningFilterChange = false;
         this.runningPitFilterChange = false;
         this.runningOldPitFilterChange = false;
+        this.runningTempoChange = false;
         this.lastTrackTimes = -1;
         this.autotimes = Math.floor(Math.random() * 6) + 1;
 
@@ -341,31 +342,31 @@ class Player {
     setTrackBpm() {
         let oldVal = this.checkPlayDataChange('firstCarLabTime', 'setTrackBpm', true);
         if(oldVal !== false || this.configUpdate) {
-            let speedDivider = this.config.bpmDivider;
-            let newVal = Math.round(this.getPlayData('firstCarLabTime') / speedDivider);
-            let currentVal = (this.configUpdate) ? newVal : Math.round(oldVal/speedDivider);
+            if(!this.runningTempoChange) {
+                this.runningTempoChange = true;
 
-            if(currentVal < this.config.bpmMinMax[0]) {
-                currentVal = this.config.bpmMinMax[0];
-            } else if(currentVal > this.config.bpmMinMax[0]) {
-                currentVal = this.config.bpmMinMax[0];
+                let speedDivider = this.config.bpmDivider;
+                let newVal = Math.round(this.getPlayData('firstCarLabTime') / speedDivider);
+                abletonApi.getTempo().then((currentVal) => {
+                    if(newVal < this.config.bpmMinMax[0]) {
+                        newVal = this.config.bpmMinMax[0];
+                    } else if(newVal > this.config.bpmMinMax[1]) {
+                        newVal = this.config.bpmMinMax[1];
+                    }
+
+                    console.log('Changing BPM', {from: currentVal, to: newVal});
+                    new TWEEN.Tween({x: currentVal})
+                        .to({x: newVal}, 30000)
+                        .onUpdate(function() {
+                            console.log('Changing bpm', this.x.toFixed(2));
+                            abletonApi.setTempo(this.x.toFixed(2));
+                        })
+                        .onComplete(() => {
+                            this.runningTempoChange = false;
+                        })
+                        .start();
+                });
             }
-
-            if(newVal < this.config.bpmMinMax[0]) {
-                newVal = this.config.bpmMinMax[0];
-            } else if(newVal > this.config.bpmMinMax[1]) {
-                newVal = this.config.bpmMinMax[1];
-            }
-
-            console.log('Changing BPM', {from: currentVal, to: newVal});
-            new TWEEN.Tween({x: currentVal})
-                .to({x: newVal}, 30000)
-                .onUpdate(function() {
-                    console.log('Changing bpm', this.x.toFixed(2));
-                    abletonApi.setTempo(this.x.toFixed(2));
-                })
-                .start();
-
         }
     }
 
