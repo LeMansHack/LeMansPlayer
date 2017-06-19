@@ -1,0 +1,15 @@
+{
+  "autoPlay": false,
+  "autoTimes": 2,
+  "currentLabDecimals": 2,
+  "bpmDivider": 1778,
+  "bpmMinMax": [105, 125],
+  "trackOverflow": true,
+  "endingMusicTrack": 98,
+  "stopMusicTrack": 106,
+  "snareMaxValue": 100,
+  "kickMaxValue": 100,
+  "kickWindSpeedDivider": 20,
+  "filterDriverChangeivision": 40,
+  "masterFilterMaxVal": 80
+}
